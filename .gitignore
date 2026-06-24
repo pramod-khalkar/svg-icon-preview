@@ -1,0 +1,51 @@
+# Gradle
+.gradle/
+.gradletasknamecache
+gradle-app.setting
+
+# Build outputs
+build/
+dist/
+out/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# IntelliJ Platform
+.intellijPlatform/
+.kotlin/
+
+# Java/JAR
+*.jar
+*.war
+*.ear
+*.class
+target/
+
+# IDE Settings
+local.properties
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+temp/
+tmp/
+
+# Environment
+.env
+.env.local
+.env.*.local
