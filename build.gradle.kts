@@ -43,10 +43,13 @@ dependencies {
     }
 }
 
+intellijPlatform {
+    buildSearchableOptions = false
+}
+
 tasks {
     patchPluginXml {
-        sinceBuild.set("231")
-        untilBuild.set("999.*")
+        untilBuild.set("299.*")
     }
 
     buildPlugin {
