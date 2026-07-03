@@ -41,6 +41,8 @@ dependencies {
     implementation("xml-apis:xml-apis-ext:1.3.04") {
         exclude(group = "xml-apis", module = "xml-apis")
     }
+
+    testImplementation("junit:junit:4.13.2")
 }
 
 intellijPlatform {
