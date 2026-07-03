@@ -1,4 +1,4 @@
-# SVG Icon Preview
+# SVG Toolkit
 
 A lightweight IntelliJ IDEA plugin that displays inline previews of SVG images encoded as base64 data URIs in your code.
 
@@ -17,7 +17,7 @@ A lightweight IntelliJ IDEA plugin that displays inline previews of SVG images e
 
 ## Installation
 
-1. Download the latest `svg-icon-preview-1.0.0.zip` from the `build/distributions/` directory
+1. Download the latest `svg-icon-preview-1.1.0.zip` from the `build/distributions/` directory
 2. In IntelliJ IDEA: `Preferences` → `Plugins` → `⚙️` → `Install plugin from disk...`
 3. Select the ZIP file and restart IntelliJ IDEA
 
@@ -43,7 +43,7 @@ A lightweight IntelliJ IDEA plugin that displays inline previews of SVG images e
 3. **Output**
    The compiled plugin ZIP will be generated at:
    ```
-   build/distributions/svg-icon-preview-1.0.0.zip
+   build/distributions/svg-icon-preview-1.1.0.zip
    ```
 
 ### Build Configuration
@@ -133,7 +133,7 @@ No configuration file or IDE settings are required.
 ## Development Notes
 
 - **Plugin ID**: `com.plugin.svg-icon-preview`
-- **Version**: 1.0.0
+- **Version**: 1.1.0
 - **Author**: Pramod Khalkar
 - **License**: See LICENSE file
 
