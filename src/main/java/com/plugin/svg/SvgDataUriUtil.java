@@ -30,8 +30,10 @@ public class SvgDataUriUtil {
         if (explicitlyBase64) {
             String decoded = tryBase64Decoders(p);
             if (decoded != null) return decoded;
-            // fallback to url-decode then return as-is
+            // fallback to url-decode then decode base64 again
             String urlDecoded = tryUrlDecode(p);
+            String decodedAgain = tryBase64Decoders(urlDecoded);
+            if (decodedAgain != null) return decodedAgain;
             return urlDecoded;
         }
 
@@ -42,6 +44,10 @@ public class SvgDataUriUtil {
         // If not base64, try URL-decoding (plain SVG text encoded)
         String urlDecoded = tryUrlDecode(p);
         if (looksLikeSvg(urlDecoded)) return urlDecoded;
+
+        // Try decoding the URL-decoded string as base64 (for URL-encoded base64 payloads)
+        String decodedAgain = tryBase64Decoders(urlDecoded);
+        if (decodedAgain != null) return decodedAgain;
 
         // As last resort, if it contains '<svg' return as-is
         if (looksLikeSvg(p)) return p;
@@ -66,8 +72,10 @@ public class SvgDataUriUtil {
 
     private static String tryUrlDecode(String s) {
         try {
-            String decoded = URLDecoder.decode(s, StandardCharsets.UTF_8.name());
-            return decoded;
+            // Replace '+' with '%2B' to prevent URLDecoder from converting '+' to spaces.
+            // In data URIs (RFC 2397), '+' is a literal plus, not a space.
+            String safeSource = s.replace("+", "%2B");
+            return URLDecoder.decode(safeSource, StandardCharsets.UTF_8.name());
         } catch (Exception ignored) {
             return null;
         }

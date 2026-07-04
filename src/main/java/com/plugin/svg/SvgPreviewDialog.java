@@ -38,7 +38,7 @@ public class SvgPreviewDialog extends JDialog {
 
         // Size and show
         setSize(600, 500);
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(parent);
     }
 
     private JPanel createToolbar() {

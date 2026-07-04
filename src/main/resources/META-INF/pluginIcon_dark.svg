@@ -1,0 +1,56 @@
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark mode: SVG Tools icon -->
+  <defs>
+    <style>
+      .bg { fill: #37474F; stroke: #4DD0E1; stroke-width: 0.5; }
+      .spanner { fill: #4DD0E1; }
+      .screwdriver { fill: #FFB74D; }
+      .svg-element { fill: #FFB74D; stroke: #4DD0E1; }
+      .handle { fill: #FFA726; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="40" height="40" rx="8"/>
+  
+  <!-- Spanner/Wrench (Left side) -->
+  <g transform="translate(2, 8)">
+    <!-- Handle -->
+    <rect class="spanner" x="0" y="2" width="10" height="2.5" rx="1.25"/>
+    <!-- Head - open jaw -->
+    <circle class="spanner" cx="11" cy="3" r="2.2"/>
+    <circle class="spanner" cx="12" cy="4.5" r="2.2"/>
+    <!-- Jaw connector -->
+    <path class="spanner" d="M 11 5.2 L 12 6.7" stroke="#4DD0E1" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Screwdriver (Right side) -->
+  <g transform="translate(24, 6)">
+    <!-- Handle (orange) -->
+    <rect class="handle" x="0" y="0" width="2" height="10" rx="1"/>
+    <!-- Tip (metal) -->
+    <polygon class="screwdriver" points="0.5,10 1.5,10 1,13"/>
+    <!-- Shine on handle -->
+    <line x1="0.5" y1="2" x2="0.5" y2="6" stroke="#FFB74D" stroke-width="0.5"/>
+  </g>
+  
+  <!-- SVG Curves/Path element (Center-bottom) -->
+  <g transform="translate(8, 22)">
+    <!-- SVG path curves -->
+    <path class="svg-element" d="M 2 6 Q 5 2 8 3 Q 11 4 14 2" 
+          stroke="#FFB74D" stroke-width="2" fill="none" stroke-linecap="round"/>
+    
+    <!-- SVG node circles -->
+    <circle class="svg-element" cx="2" cy="6" r="1"/>
+    <circle class="svg-element" cx="14" cy="2" r="1"/>
+    <circle class="svg-element" cx="8" cy="3" r="0.8" fill="#4DD0E1"/>
+  </g>
+  
+  <!-- Lightning bolt accent (activity) -->
+  <g transform="translate(20, 34)">
+    <polygon class="svg-element" points="4,0 2,3 3,3 1,6 5,2 4,2"/>
+  </g>
+</svg>
+
+
+

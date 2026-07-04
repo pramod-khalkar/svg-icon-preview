@@ -41,7 +41,7 @@ public class SvgDynamicIcon implements Icon {
                 }
             } catch (Exception e) {
                 // Avoid spamming logs
-                LOG.warn("Error while requesting UI refresh after icon update: " + e.getMessage());
+                LOG.warn("[SVG Toolkit] Error while requesting UI refresh after icon update: " + e.getMessage());
             }
         });
     }
