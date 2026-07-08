@@ -7,6 +7,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +19,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ToolWindow;
 import java.util.regex.Pattern;
+import com.plugin.svg.SvgPreviewToolWindowFactory;
 /**
  * @author : Pramod Khalkar
  * @since : 24/06/26, Wed
@@ -118,7 +122,7 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
 
 		int payloadLength = payload.length();
 		String shortId = Integer.toHexString(payload.hashCode());
-		
+
 		// Log at debug level to keep the IDE logs clean
 		LOG.debug("[SVG Toolkit] SVG DETECTED: id=" + shortId + " length=" + payloadLength + " base64=" + (marker!=null));
 
@@ -131,7 +135,7 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
 			LOG.warn("[SVG Toolkit] DECODE THREW EXCEPTION for id=" + shortId + ": " + t.getMessage(), t);
 			return null;
 		}
-		
+
 		if (svgText == null) {
 			LOG.warn("[SVG Toolkit] SVG DECODE FAILED: id=" + shortId);
 			return null;
@@ -157,7 +161,7 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
 		} catch (Throwable e) {
 			LOG.warn("[SVG Toolkit] Failed to get settings, using default: " + e.getMessage(), e);
 		}
-		
+
 		LOG.debug("[SVG Toolkit] MAX_INLINE_SIZE: " + maxInlineSize + " bytes");
 
 		boolean isLargePayload = svgText.length() > maxInlineSize;
@@ -201,8 +205,8 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
 							dynamicIcon.setImage(gutterImg);
 						}
 						SwingUtilities.invokeLater(() -> {
-							LOG.info("[SVG Toolkit] CLICK: Opening preview dialog for id=" + shortId);
-							showPreviewDialog(project, preview);
+							LOG.info("[SVG Toolkit] CLICK: Showing preview in tool window for id=" + shortId);
+							showPreviewInToolWindow(project, preview);
 						});
 					}
 				} catch (Throwable t) {
@@ -235,14 +239,16 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
 		}
 	}
 
-	private void showPreviewDialog(com.intellij.openapi.project.Project project, BufferedImage img){
-		Frame parentFrame = null;
-		try {
-			parentFrame = com.intellij.openapi.wm.WindowManager.getInstance().getFrame(project);
-		} catch (Exception ignored) {
-		}
-		SvgPreviewDialog dialog = new SvgPreviewDialog(parentFrame, img);
-		dialog.setVisible(true);
-		dialog.toFront();
+	private void showPreviewInToolWindow(Project project, BufferedImage preview) {
+		SwingUtilities.invokeLater(() -> {
+			try {
+				ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("SVGPreview");
+				SvgPreviewToolWindow previewPanel = SvgPreviewToolWindowFactory.getInstance();
+				previewPanel.setImage(preview);
+				toolWindow.show();
+			} catch (Exception e) {
+				LOG.warn("[SVG Toolkit] Failed to show preview tool window: " + e.getMessage(), e);
+			}
+		});
 	}
 }

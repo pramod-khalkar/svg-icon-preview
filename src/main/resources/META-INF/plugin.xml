@@ -5,7 +5,7 @@
     <vendor>Pramod Khalkar</vendor>
     <description><![CDATA[
         <p><b>SVG Toolkit</b> - Comprehensive SVG inspection and export for IntelliJ IDEA</p>
-        
+
         <h3>Core Features</h3>
         <ul>
             <li><b>Smart SVG Detection</b> - Finds <code>data:image/svg+xml;base64,...</code> strings in code (handles line breaks, charset, multiple encodings)</li>
@@ -34,5 +34,7 @@
                                  instance="com.plugin.svg.SvgToolkitSettingsConfigurable"/>
         <applicationService serviceInterface="com.plugin.svg.SvgToolkitSettings"
                            serviceImplementation="com.plugin.svg.SvgToolkitSettings"/>
+        <toolWindow id="SVGPreview" anchor="right"
+                    factoryClass="com.plugin.svg.SvgPreviewToolWindowFactory"/>
     </extensions>
 </idea-plugin>
