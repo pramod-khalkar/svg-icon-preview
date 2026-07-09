@@ -198,7 +198,12 @@ public class SvgFileEditor implements FileEditor {
     @NotNull
     @Override
     public String getName() {
-        return "SVG Preview";
+        String name = virtualFile.getName();
+        // Remove the .svg-preview suffix for a cleaner tab title
+        if (name.endsWith(".svg-preview")) {
+            return name.substring(0, name.length() - ".svg-preview".length());
+        }
+        return name;
     }
 
     @NotNull

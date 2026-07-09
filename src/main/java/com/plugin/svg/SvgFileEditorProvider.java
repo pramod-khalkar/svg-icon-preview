@@ -28,7 +28,7 @@ public class SvgFileEditorProvider implements FileEditorProvider {
     @Override
     public boolean accept(@NotNull Project project, @NotNull VirtualFile virtualFile) {
         // This editor only accepts our special virtual files for SVG previews
-        return virtualFile.getName().endsWith(".svg-preview");
+        return virtualFile.getName().startsWith("svg-preview-");
     }
 
     @Override

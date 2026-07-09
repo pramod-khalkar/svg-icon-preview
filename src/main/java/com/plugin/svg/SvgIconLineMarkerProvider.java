@@ -223,7 +223,7 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
                         SwingUtilities.invokeLater(() -> {
                             LOG.info("[SVG Toolkit] CLICK: Showing preview in editor tab for id=" + shortId);
                             // Create and open the virtual file
-                            String tempFileName = "svg-preview-" + System.currentTimeMillis() + ".svg-preview";
+                            String tempFileName = "svg-preview-" + System.currentTimeMillis();
                             SvgVirtualFile virtualFile = new SvgVirtualFile(tempFileName, svgText, text, preview);
                             FileEditorManager.getInstance(project).openFile(virtualFile, true);
                         });
