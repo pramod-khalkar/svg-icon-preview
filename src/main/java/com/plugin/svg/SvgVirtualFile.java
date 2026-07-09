@@ -1,5 +1,7 @@
 package com.plugin.svg;
 
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.testFramework.LightVirtualFileBase;
@@ -54,5 +56,10 @@ public class SvgVirtualFile extends VirtualFile {
     @Override
     public @NotNull OutputStream getOutputStream(Object requestor, long newModificationStamp, long newTimeStamp) throws IOException {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull FileType getFileType() {
+        return StdFileTypes.XML;
     }
 }
