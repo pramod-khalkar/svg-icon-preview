@@ -10,7 +10,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 ### Detection & Preview
 - 🖼️ **Smart SVG Detection** - Detects `data:image/svg+xml;base64,...` strings in code (handles line breaks, charset, optional encoding)
 - 👁️ **Gutter Icon Preview** - Shows 16×16px icon in editor margin
-- 📋 **Full-Size Preview Dialog** - Click gutter icon to open enlarged preview with toolbar
+- 📄 **Editor Tab Preview** - Click gutter icon to open SVG in editor tab with split view (source | preview)
 
 ### Robust Decoding
 - ✅ **Multiple Format Support** - Standard base64, URL-safe base64, plain text SVG URIs
@@ -70,7 +70,10 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 
 2. **Hover over line** → See small icon in gutter
 
-3. **Click gutter icon** → Large preview opens with toolbar
+3. **Click gutter icon** → SVG opens in editor tab with:
+   - Left pane: Formatted, decoded SVG source (non-editable)
+   - Right pane: SVG preview with zoom controls
+   - Toolbar above: Copy as PNG, Export PNG, image details (e.g., "400 × 400 px ~.5KB")
 
 4. **Use toolbar:**
    - **Zoom**: `-` / `+` buttons or `Ctrl+±`
@@ -136,11 +139,13 @@ svg-icon-preview/
 │   ├── SvgDataUriUtil.java                   # Robust decoder
 │   ├── SvgDynamicIcon.java                   # Placeholder icon
 │   ├── SvgImageCache.java                    # LRU image cache (50 MB, 100 entries)
-│   ├── SvgPreviewDialog.java                 # Enhanced preview (zoom + export)
+│   ├── SvgFileEditorProvider.java            # File editor provider for SVG previews
+│   ├── SvgFileEditor.java                    # Main editor showing split view
 │   ├── SvgRenderer.java                      # SVG→image conversion (Batik)
 │   ├── SvgToolkitSettings.java               # Persistent user settings
 │   ├── SvgToolkitSettingsConfigurable.java   # Settings UI entry point
-│   └── SvgToolkitSettingsPanel.java          # Settings panel UI
+│   ├── SvgToolkitSettingsPanel.java          # Settings panel UI
+│   └── SvgVirtualFile.java                   # Virtual file for editor tabs
 ├── src/test/java/com/plugin/svg/
 │   └── SvgDataUriUtilTest.java               # Unit tests (5 decoder variants)
 └── src/main/resources/META-INF/plugin.xml    # Plugin descriptor

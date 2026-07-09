@@ -11,10 +11,8 @@
             <li><b>Smart SVG Detection</b> - Finds <code>data:image/svg+xml;base64,...</code> strings in code (handles line breaks, charset, multiple encodings)</li>
             <li><b>Gutter Icon Preview</b> - Shows 16×16px preview icon in editor margin</li>
             <li><b>Full-Size Preview</b> - Click icon to open enhanced preview dialog with toolbar</li>
-            <li><b>Zoom Controls</b> - 10%-400% zoom with keyboard shortcuts (Ctrl+±, Ctrl+0)</li>
             <li><b>Copy as PNG</b> - One-click clipboard copy (works in Slack, email, design tools)</li>
             <li><b>Export to File</b> - Save rendered SVG as PNG file</li>
-            <li><b>LRU Image Cache</b> - Caches rendered images for ~50x faster duplicate loading</li>
             <li><b>User Settings</b> - Configure MAX_INLINE_SIZE (default 200 KB)</li>
         </ul>
 

@@ -2,17 +2,20 @@
 
 All notable changes to SVG Toolkit will be documented in this file.
 
-### [1.1.0] - 2026-07-04
+### [1.1.0] - 2026-07-09
 
-**Major Release: Performance & UX Improvements**
+**Major Release: Editor Tab Interface & Performance Improvements**
 
 #### Added
+- **Editor Tab Interface** - SVG previews now open in editor tabs (like Java files) instead of side tool window
+  - Split view: Formatted SVG source (left) | SVG preview (right)
+  - Toolbar above editor with Copy as PNG, Export PNG, and image details label
+  - Zoom-enabled preview panel (mouse wheel + keyboard shortcuts: Ctrl+±, Ctrl+0)
+  - Proper SVG/XML file icons in editor tabs (replaces question mark)
+  - Clean tab titles: `svg-preview-<timestamp>` (no file extension)
+- **Enhanced SVG Rendering Reliability** - Improved DOCTYPE handling and disabled DTD validation to prevent external entity loading issues
+- **Improved Error Reporting** - Editor tab shows actionable messages directing users to check idea.log for rendering failures
 - **LRU Image Cache** - Caches up to 100 rendered images (50 MB max), ~50x faster for duplicate SVGs
-- **Enhanced Preview Dialog** - Full-featured preview with toolbar
-  - Zoom controls (10%-400%, keyboard shortcuts: Ctrl+±, Ctrl+0)
-  - High-quality bicubic interpolation for smooth scaling
-  - Copy as PNG button (one-click clipboard copy)
-  - Export to PNG file with file chooser
 - **Dynamic Tooltips** - Tooltips show SVG size and rendering hints for large files
 - **User-Configurable Settings** - Settings UI for MAX_INLINE_SIZE (10 KB–10 MB, default 200 KB)
 - **Comprehensive Logging** - Structured logging with payload IDs for debugging
@@ -24,22 +27,27 @@ All notable changes to SVG Toolkit will be documented in this file.
 - **Error Handling** - Graceful fallbacks for malformed SVG URIs
 - **Memory Safety** - Bounded cache size, placeholder icons prevent UI lag
 - **Performance** - Non-blocking background threads for all rendering
+- **XML Formatting** - Decoded SVG is now pretty-printed with 2-space indentation in editor tab
+- **Settings Accessibility** - SVG Toolkit settings available under Settings → Tools → SVG Toolkit
 
 #### Fixed
 - Plugin descriptor validation (IntelliJ Marketplace compliance)
 - Line marker registration for Java and JSON files
 - Application service lifecycle management
+- SVG rendering failures due to DOCTYPE/network issues
+- Tab title showing `.svg-preview` extension
+- Missing SVG/XML file type icon in editor tabs
 
 #### Technical Details
-- New files: `SvgImageCache.java`, `SvgPreviewDialog.java`, `SvgToolkitSettings.java`, `SvgToolkitSettingsConfigurable.java`, `SvgToolkitSettingsPanel.java`
-- Updated: `SvgIconLineMarkerProvider.java`, `plugin.xml`
+- New files: `SvgFileEditorProvider.java`, `SvgFileEditor.java`
+- Updated: `SvgIconLineMarkerProvider.java` (removed tool window integration, added editor tab integration), `SvgRenderer.java` (enhanced reliability), `SvgVirtualFile.java` (added FileType implementation for proper icons), `plugin.xml` (replaced toolWindow with fileEditorProvider)
 - Test coverage: 5 decoder unit tests (base64, URL-safe, padding, URL-encoded, plain SVG)
 
 ---
 
-### [1.0.0] - Initial Release
+### [1.0.0] - 2026-06-24
 
-#### Added
+#### Added (initial release)
 - Initial release of SVG Toolkit plugin
 - SVG data URI detection in code
 - Gutter icon preview (16×16 px)
@@ -50,30 +58,3 @@ All notable changes to SVG Toolkit will be documented in this file.
 
 #### Supported Formats
 - `data:image/svg+xml;base64,<encoded-svg>`
-
----
-
-## Roadmap
-
-**v1.2.0** (Planned) - Export Features
-- Export SVG to file
-- Copy as SVG (text)
-- Batch export all SVGs
-- Sprite sheet generation
-
-**v1.3.0** (Planned) - SVG Library
-- User-defined SVG collections
-- Search and quick insert
-- Library sync across projects
-- Analytics and statistics
-
-**v1.4.0** (Planned) - Testing & Quality
-- Comprehensive unit tests
-- Integration tests
-- Performance benchmarks
-
-**v1.5.0** (Planned) - Advanced Features
-- SVG editing tools
-- Optimization and compression
-- Batch operations
-- Design system integration
