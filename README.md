@@ -196,7 +196,7 @@ Docs:
 
 ## Plugin Info
 
-- **Plugin ID**: `com.plugin.svg-icon-preview`
+- **Plugin ID**: `com.plugin.svg_icon_preview`
 - **Version**: 1.1.0
 - **Author**: Pramod Khalkar
 - **License**: See LICENSE file

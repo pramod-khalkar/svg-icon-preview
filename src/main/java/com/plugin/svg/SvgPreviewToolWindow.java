@@ -27,6 +27,7 @@ public class SvgPreviewToolWindow extends JPanel {
     private BufferedImage originalImage;
     private int zoomLevel = DEFAULT_ZOOM;
     private JLabel zoomLabel;
+    private JLabel sizeLabel;
 
     public SvgPreviewToolWindow() {
         setLayout(new BorderLayout());
@@ -45,10 +46,46 @@ public class SvgPreviewToolWindow extends JPanel {
             zoomLevel = DEFAULT_ZOOM;
             imagePanel.setZoom(zoomLevel);
             zoomLabel.setText(zoomLevel + "%");
+            // Update size label
+            if (sizeLabel != null) {
+                sizeLabel.setText(String.format("%d × %d px", image.getWidth(), image.getHeight()));
+            }
         } else {
             imagePanel.setImage(null);
             zoomLevel = DEFAULT_ZOOM;
             zoomLabel.setText(zoomLevel + "%");
+            if (sizeLabel != null) {
+                sizeLabel.setText("");
+                sizeLabel.revalidate();
+                sizeLabel.repaint();
+            }
+        }
+    }
+
+    /** Sets the image to preview and also displays SVG size info. */
+    public void setImageInfo(BufferedImage image, int svgSizeBytes) {
+        this.originalImage = image;
+        if (image != null) {
+            imagePanel.setImage(image);
+            zoomLevel = DEFAULT_ZOOM;
+            imagePanel.setZoom(zoomLevel);
+            zoomLabel.setText(zoomLevel + "%");
+            // Update size label with dimensions and SVG size
+            if (sizeLabel != null) {
+                double kb = svgSizeBytes / 1024.0;
+                sizeLabel.setText(String.format("%d × %d SVG %.1fKB", image.getWidth(), image.getHeight(), kb));
+                sizeLabel.revalidate();
+                sizeLabel.repaint();
+            }
+        } else {
+            imagePanel.setImage(null);
+            zoomLevel = DEFAULT_ZOOM;
+            zoomLabel.setText(zoomLevel + "%");
+            if (sizeLabel != null) {
+                sizeLabel.setText("");
+                sizeLabel.revalidate();
+                sizeLabel.repaint();
+            }
         }
     }
 
@@ -68,12 +105,17 @@ public class SvgPreviewToolWindow extends JPanel {
         this.zoomLabel.setPreferredSize(new Dimension(50, 25));
         toolbar.add(this.zoomLabel);
 
+        // Size label
+        this.sizeLabel = new JLabel("");
+        this.sizeLabel.setPreferredSize(new Dimension(150, 25));
+        toolbar.add(this.sizeLabel);
+
         // Zoom in button
         JButton zoomInBtn = new JButton("+");
         zoomInBtn.setToolTipText("Zoom in (Ctrl+Plus)");
         zoomInBtn.addActionListener(e -> {
             zoomIn();
-            this.zoomLabel.setText(zoomLevel + "%");
+            zoomLabel.setText(zoomLevel + "%");
         });
         toolbar.add(zoomInBtn);
 
@@ -82,7 +124,7 @@ public class SvgPreviewToolWindow extends JPanel {
         resetBtn.setToolTipText("Reset to 100% zoom");
         resetBtn.addActionListener(e -> {
             resetZoom();
-            this.zoomLabel.setText(zoomLevel + "%");
+            zoomLabel.setText(zoomLevel + "%");
         });
         toolbar.add(resetBtn);
 
@@ -104,9 +146,9 @@ public class SvgPreviewToolWindow extends JPanel {
         toolbar.add(exportPngBtn);
 
         // Update zoom label on button click
-        zoomOutBtn.addActionListener(e -> this.zoomLabel.setText(zoomLevel + "%"));
-        zoomInBtn.addActionListener(e -> this.zoomLabel.setText(zoomLevel + "%"));
-        resetBtn.addActionListener(e -> this.zoomLabel.setText(zoomLevel + "%"));
+        zoomOutBtn.addActionListener(e -> zoomLabel.setText(zoomLevel + "%"));
+        zoomInBtn.addActionListener(e -> zoomLabel.setText(zoomLevel + "%"));
+        resetBtn.addActionListener(e -> zoomLabel.setText(zoomLevel + "%"));
 
         // Keyboard shortcuts
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
@@ -114,15 +156,15 @@ public class SvgPreviewToolWindow extends JPanel {
                 if (e.isControlDown()) {
                     if (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS) {
                         zoomIn();
-                        this.zoomLabel.setText(zoomLevel + "%");
+                        zoomLabel.setText(zoomLevel + "%");
                         return true;
                     } else if (e.getKeyCode() == KeyEvent.VK_MINUS) {
                         zoomOut();
-                        this.zoomLabel.setText(zoomLevel + "%");
+                        zoomLabel.setText(zoomLevel + "%");
                         return true;
                     } else if (e.getKeyCode() == KeyEvent.VK_0) {
                         resetZoom();
-                        this.zoomLabel.setText(zoomLevel + "%");
+                        zoomLabel.setText(zoomLevel + "%");
                         return true;
                     }
                 }
@@ -207,7 +249,6 @@ public class SvgPreviewToolWindow extends JPanel {
     /**
      * Panel that displays image with zoom support.
      */
-
     @Override
     public Dimension getPreferredSize() {
         Dimension superSize = super.getPreferredSize();

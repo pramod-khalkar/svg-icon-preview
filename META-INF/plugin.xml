@@ -1,0 +1,32 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+  <idea-version since-build="231.8109" until-build="299.*" />
+  <version>1.1.0</version>
+  <id>com.plugin.svg-icon-preview</id>
+  <name>SVG Toolkit</name>
+  <vendor>Pramod Khalkar</vendor>
+  <description><![CDATA[<p><b>SVG Toolkit</b> - Comprehensive SVG inspection and export for IntelliJ IDEA</p>
+
+        <h3>Core Features</h3>
+        <ul>
+            <li><b>Smart SVG Detection</b> - Finds <code>data:image/svg+xml;base64,...</code> strings in code (handles line breaks, charset, multiple encodings)</li>
+            <li><b>Gutter Icon Preview</b> - Shows 16×16px preview icon in editor margin</li>
+            <li><b>Full-Size Preview</b> - Click icon to open enhanced preview dialog with toolbar</li>
+            <li><b>Zoom Controls</b> - 10%-400% zoom with keyboard shortcuts (Ctrl+±, Ctrl+0)</li>
+            <li><b>Copy as PNG</b> - One-click clipboard copy (works in Slack, email, design tools)</li>
+            <li><b>Export to File</b> - Save rendered SVG as PNG file</li>
+            <li><b>LRU Image Cache</b> - Caches rendered images for ~50x faster duplicate loading</li>
+            <li><b>User Settings</b> - Configure MAX_INLINE_SIZE (default 200 KB)</li>
+        </ul>
+
+        <p style="font-size: 0.9em;"><b>Version 1.1.0</b> | Compatible: IntelliJ 2023.1+ | <b>Author:</b> Pramod Khalkar</p>]]></description>
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.modules.json</depends>
+  <extensions defaultExtensionNs="com.intellij">
+    <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.plugin.svg.SvgIconLineMarkerProvider" />
+    <codeInsight.lineMarkerProvider language="JSON" implementationClass="com.plugin.svg.SvgIconLineMarkerProvider" />
+    <applicationConfigurable groupId="tools" displayName="SVG Toolkit" id="preferences.svgtoolkit" instance="com.plugin.svg.SvgToolkitSettingsConfigurable" />
+    <applicationService serviceInterface="com.plugin.svg.SvgToolkitSettings" serviceImplementation="com.plugin.svg.SvgToolkitSettings" />
+    <toolWindow id="SVGPreview" anchor="right" factoryClass="com.plugin.svg.SvgPreviewToolWindowFactory" />
+  </extensions>
+</idea-plugin>
