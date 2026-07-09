@@ -23,13 +23,19 @@ public class SvgRenderer {
 		ClassLoader original = Thread.currentThread().getContextClassLoader();
 		try {
 			Thread.currentThread().setContextClassLoader(SvgRenderer.class.getClassLoader());
-			
-			// Clean DOCTYPE declarations that might cause external DTD network lookup failures/hangs
+
+			// Try to clean DOCTYPE declarations that might cause external DTD network lookup failures/hangs
 			String cleanedSvg = svgContent.replaceAll("(?s)<!DOCTYPE.*?>", "");
-			
+			// If cleaning resulted in empty string, fall back to original
+			if (cleanedSvg == null || cleanedSvg.isEmpty()) {
+				cleanedSvg = svgContent;
+			}
+
 			PNGTranscoder transcoder = new PNGTranscoder();
 			transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, (float)width);
 			transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, (float)height);
+			// Disable DTD validation to prevent external entity loading
+			transcoder.addTranscodingHint(PNGTranscoder.KEY_XML_PARSER_VALIDATING, Boolean.FALSE);
 
 			byte[] svgBytes = cleanedSvg.getBytes(StandardCharsets.UTF_8);
 			ByteArrayInputStream in = new ByteArrayInputStream(svgBytes);
@@ -39,7 +45,7 @@ public class SvgRenderer {
 
 			return ImageIO.read(new ByteArrayInputStream(out.toByteArray()));
 		} catch (Exception e) {
-			System.err.println("[SVG Toolkit] SVG Rendering failed for content length " + svgContent.length() + ": " + e.getMessage());
+			System.err.println("[SVG Toolkit] SVG Rendering failed for content length " + (svgContent != null ? svgContent.length() : 0) + ": " + e.getMessage());
 			e.printStackTrace();
 			return null;
 		} finally {
