@@ -81,16 +81,15 @@ public class SvgFileEditor implements FileEditor {
         try {
             // Read content from the virtual file using its input stream
             byte[] bytes = virtualFile.contentsToByteArray();
-            String content = new String(bytes, StandardCharsets.UTF_8);
-            this.currentBase64 = content;
-            this.base64TextArea.setText(content);
+            String rawContent = new String(bytes, StandardCharsets.UTF_8);
+            this.currentBase64 = rawContent;
 
-            // Render SVG preview from the Base64 content
-            if (content != null && !content.isEmpty()) {
+            // Decode the SVG content
+            String svgText = null;
+            if (rawContent != null && !rawContent.isEmpty()) {
                 try {
                     // Extract payload and marker from the data URI string
-                    Matcher m = SVG_ICON_PATTERN.matcher(content);
-                    String svgText = null;
+                    Matcher m = SVG_ICON_PATTERN.matcher(rawContent);
                     if (m.matches()) {
                         String marker = m.group(1); // 'base64' if present
                         String payload = m.group(2);
@@ -103,35 +102,33 @@ public class SvgFileEditor implements FileEditor {
                             }
                         }
                     }
-                    if (svgText != null) {
-                        BufferedImage previewImage = SvgRenderer.render(svgText, 400, 400); // Default size
-                        this.currentImage = previewImage;
-                        this.previewPanel.setImage(previewImage);
-
-                        // Update image details
-                        if (previewImage != null) {
-                            // Calculate approximate size in KB (assuming 4 bytes per pixel for ARGB)
-                            double kb = (previewImage.getWidth() * previewImage.getHeight() * 4.0) / 1024.0;
-                            imageDetailsLabel.setText(String.format("%d × %d px ~%.1fKB",
-                                    previewImage.getWidth(), previewImage.getHeight(), kb));
-                        } else {
-                            imageDetailsLabel.setText("No image");
-                        }
-                    } else {
-                        this.currentImage = null;
-                        this.previewPanel.setImage(null);
-                        imageDetailsLabel.setText("Invalid SVG");
-                    }
                 } catch (Exception e) {
-                    LOG.warn("[SVG Toolkit] Error rendering SVG preview: " + e.getMessage(), e);
-                    this.currentImage = null;
-                    this.previewPanel.setImage(null);
-                    imageDetailsLabel.setText("Error rendering SVG");
+                    LOG.warn("[SVG Toolkit] Error decoding SVG: " + e.getMessage(), e);
+                }
+            }
+
+            // Show decoded SVG in the text area (or raw content if decoding failed)
+            this.base64TextArea.setText(svgText != null ? svgText : rawContent);
+
+            // Render SVG preview from the decoded content
+            if (svgText != null) {
+                BufferedImage previewImage = SvgRenderer.render(svgText, 400, 400); // Default size
+                this.currentImage = previewImage;
+                this.previewPanel.setImage(previewImage);
+
+                // Update image details
+                if (previewImage != null) {
+                    // Calculate approximate size in KB (assuming 4 bytes per pixel for ARGB)
+                    double kb = (previewImage.getWidth() * previewImage.getHeight() * 4.0) / 1024.0;
+                    imageDetailsLabel.setText(String.format("%d × %d px ~%.1fKB",
+                            previewImage.getWidth(), previewImage.getHeight(), kb));
+                } else {
+                    imageDetailsLabel.setText("No image");
                 }
             } else {
                 this.currentImage = null;
                 this.previewPanel.setImage(null);
-                imageDetailsLabel.setText("Empty content");
+                imageDetailsLabel.setText("Invalid SVG");
             }
         } catch (IOException e) {
             LOG.warn("[SVG Toolkit] Error reading content from virtual file: " + e.getMessage(), e);
