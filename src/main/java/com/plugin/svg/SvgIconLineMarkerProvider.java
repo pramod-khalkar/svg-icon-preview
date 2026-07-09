@@ -232,7 +232,7 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
                             JOptionPane.showMessageDialog(
                                     SwingUtilities.getWindowAncestor(
                                             com.intellij.openapi.wm.WindowManager.getInstance().getFrame(project)),
-                                    "Failed to render SVG preview. The SVG data may be invalid, unsupported, or too large. See IDE logs for details.",
+                                    "Failed to render SVG preview. The SVG data may be invalid, unsupported, or too large.",
                                     "Preview Error",
                                     JOptionPane.ERROR_MESSAGE);
                         });

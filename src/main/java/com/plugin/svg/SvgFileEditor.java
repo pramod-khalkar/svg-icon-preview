@@ -138,19 +138,27 @@ public class SvgFileEditor implements FileEditor {
                     imageDetailsLabel.setText(String.format("%d × %d px ~%.1fKB",
                             previewImage.getWidth(), previewImage.getHeight(), kb));
                 } else {
-                    imageDetailsLabel.setText("No image");
+                    imageDetailsLabel.setText("Failed to render SVG - check idea.log for details");
                 }
             } else {
                 this.currentImage = null;
                 this.previewPanel.setImage(null);
-                imageDetailsLabel.setText("Invalid SVG");
+                imageDetailsLabel.setText("Invalid SVG - check idea.log for details");
             }
-        } catch (IOException e) {
-            LOG.warn("[SVG Toolkit] Error reading content from virtual file: " + e.getMessage(), e);
-            this.base64TextArea.setText("Error reading file content");
-            this.currentImage = null;
-            this.previewPanel.setImage(null);
-            imageDetailsLabel.setText("Error reading file");
+        } catch (Exception e) {
+            if (e instanceof IOException) {
+                LOG.warn("[SVG Toolkit] Error reading content from virtual file: " + e.getMessage(), e);
+                this.base64TextArea.setText("Error reading file content");
+                this.currentImage = null;
+                this.previewPanel.setImage(null);
+                imageDetailsLabel.setText("Error reading file");
+            } else {
+                LOG.warn("[SVG Toolkit] Error processing SVG: " + e.getMessage(), e);
+                this.base64TextArea.setText("Error processing SVG - see idea.log for details");
+                this.currentImage = null;
+                this.previewPanel.setImage(null);
+                imageDetailsLabel.setText("Error processing SVG - see idea.log for details");
+            }
         }
     }
 
