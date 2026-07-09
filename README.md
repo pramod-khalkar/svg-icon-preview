@@ -59,7 +59,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 ## Requirements
 
 - **IntelliJ IDEA** 2023.1 or later (Community or Ultimate)
-- **Java** 11+ (JDK)
+- **Java** 17+ (JDK)
 
 ## Quick Start
 
@@ -103,7 +103,7 @@ Go to: **Preferences** → **SVG Toolkit**
 ## Building from Source
 
 ### Prerequisites
-- JDK 11+ installed
+- JDK 17+ installed
 - Git
 
 ### Build Steps
@@ -206,14 +206,6 @@ Docs:
 - **Author**: Pramod Khalkar
 - **License**: See LICENSE file
 
-## Roadmap
-
-**v1.2.0** (Export Features) - Export SVG files, batch export, sprite sheets  
-**v1.3.0** (SVG Library) - User collections, search & insert, sync across projects  
-**v1.4.0** (Testing & Quality) - Comprehensive tests, performance benchmarks  
-**v1.5.0** (Advanced) - Analytics, batch operations, optimization
-
-See `docs/roadmap.md` for detailed feature breakdown.
 
 ## Contributing
 
