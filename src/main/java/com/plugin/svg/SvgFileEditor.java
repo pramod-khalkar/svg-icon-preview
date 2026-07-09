@@ -23,9 +23,20 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 /**
  * File editor for SVG previews showing Base64 source and visual preview side by side.
@@ -108,7 +119,11 @@ public class SvgFileEditor implements FileEditor {
             }
 
             // Show decoded SVG in the text area (or raw content if decoding failed)
-            this.base64TextArea.setText(svgText != null ? svgText : rawContent);
+            String displayText = rawContent;
+            if (svgText != null) {
+                displayText = formatXml(svgText);
+            }
+            this.base64TextArea.setText(displayText);
 
             // Render SVG preview from the decoded content
             if (svgText != null) {
@@ -136,6 +151,30 @@ public class SvgFileEditor implements FileEditor {
             this.currentImage = null;
             this.previewPanel.setImage(null);
             imageDetailsLabel.setText("Error reading file");
+        }
+    }
+
+    private String formatXml(String xml) {
+        if (xml == null || xml.isEmpty()) {
+            return xml;
+        }
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new StringReader(xml)));
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            transformerFactory.setAttribute("indent-number", 2);
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(doc), new StreamResult(writer));
+            return writer.toString();
+        } catch (Exception e) {
+            LOG.warn("[SVG Toolkit] Failed to format XML: " + e.getMessage(), e);
+            return xml; // fallback
         }
     }
 
