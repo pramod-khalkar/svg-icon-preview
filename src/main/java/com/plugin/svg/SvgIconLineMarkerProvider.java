@@ -23,6 +23,13 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ToolWindow;
 import java.util.regex.Pattern;
 import com.plugin.svg.SvgPreviewToolWindowFactory;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.util.io.FileUtil;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author : Pramod Khalkar
@@ -214,8 +221,11 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
                             dynamicIcon.setImage(gutterImg);
                         }
                         SwingUtilities.invokeLater(() -> {
-                            LOG.info("[SVG Toolkit] CLICK: Showing preview in tool window for id=" + shortId);
-                            showPreviewInToolWindow(project, preview, svgText.length());
+                            LOG.info("[SVG Toolkit] CLICK: Showing preview in editor tab for id=" + shortId);
+                            // Create and open the virtual file
+                            String tempFileName = "svg-preview-" + System.currentTimeMillis() + ".svg-preview";
+                            SvgVirtualFile virtualFile = new SvgVirtualFile(tempFileName, svgText, text, preview);
+                            FileEditorManager.getInstance(project).openFile(virtualFile, true);
                         });
                     } else {
                         SwingUtilities.invokeLater(() -> {
@@ -259,16 +269,4 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
         return SvgRenderer.render(svg, width, height);
     }
 
-    private void showPreviewInToolWindow(Project project, BufferedImage preview, int svgSizeBytes) {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("SVGPreview");
-                SvgPreviewToolWindow previewPanel = SvgPreviewToolWindowFactory.getInstance();
-                previewPanel.setImageInfo(preview, svgSizeBytes);
-                toolWindow.show();
-            } catch (Exception e) {
-                LOG.warn("[SVG Toolkit] Failed to show preview tool window: " + e.getMessage(), e);
-            }
-        });
     }
-}

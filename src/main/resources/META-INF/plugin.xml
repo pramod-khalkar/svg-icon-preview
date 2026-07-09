@@ -34,7 +34,6 @@
                                  instance="com.plugin.svg.SvgToolkitSettingsConfigurable"/>
         <applicationService serviceInterface="com.plugin.svg.SvgToolkitSettings"
                            serviceImplementation="com.plugin.svg.SvgToolkitSettings"/>
-        <toolWindow id="SVGPreview" anchor="right"
-                    factoryClass="com.plugin.svg.SvgPreviewToolWindowFactory"/>
+        <fileEditorProvider implementation="com.plugin.svg.SvgFileEditorProvider"/>
     </extensions>
 </idea-plugin>
