@@ -2,7 +2,7 @@
 
 All notable changes to SVG Toolkit will be documented in this file.
 
-### [1.1.0] - 2026-07-09
+### [1.1.0] - 2026-07-10
 
 **Major Release: Editor Tab Interface & Performance Improvements**
 
@@ -37,10 +37,12 @@ All notable changes to SVG Toolkit will be documented in this file.
 - SVG rendering failures due to DOCTYPE/network issues
 - Tab title showing `.svg-preview` extension
 - Missing SVG/XML file type icon in editor tabs
+- **Threading violation** - Read access from background thread when accessing PSI elements in line marker provider (fixes "Read access is allowed from inside read-action only" error)
+- Plugin compatibility with IntelliJ Platform 2023.1+ (updated to Java 17)
 
 #### Technical Details
 - New files: `SvgFileEditorProvider.java`, `SvgFileEditor.java`
-- Updated: `SvgIconLineMarkerProvider.java` (removed tool window integration, added editor tab integration), `SvgRenderer.java` (enhanced reliability), `SvgVirtualFile.java` (added FileType implementation for proper icons), `plugin.xml` (replaced toolWindow with fileEditorProvider)
+- Updated: `SvgIconLineMarkerProvider.java` (removed tool window integration, added editor tab implementation, fixed threading issue with ReadAction), `SvgRenderer.java` (enhanced reliability), `SvgVirtualFile.java` (added FileType implementation for proper icons), `plugin.xml` (replaced toolWindow with fileEditorProvider.java` (enhanced reliability), `SvgVirtualFile.java` (added FileType implementation for proper icons), `plugin.xml` (replaced toolWindow with fileEditorProvider)
 - Test coverage: 5 decoder unit tests (base64, URL-safe, padding, URL-encoded, plain SVG)
 
 ---

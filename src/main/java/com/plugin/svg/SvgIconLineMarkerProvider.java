@@ -4,6 +4,7 @@ import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
@@ -119,6 +120,8 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
     }
 
     private LineMarkerInfo<?> buildMarker(@NotNull PsiElement element) {
+        // Access PSI elements inside a read action to avoid threading issues
+        return ReadAction.compute(() -> {
         String text = getElementValue(element);
         if (text == null) {
             return null;
@@ -263,6 +266,7 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
         LOG.debug("[SVG Toolkit] MARKER CREATED for id=" + shortId);
         return new LineMarkerInfo<PsiElement>(element,
                 element.getTextRange(), dynamicIcon, psi -> tooltipSupplier.get(), clickHandler, GutterIconRenderer.Alignment.LEFT);
+        });
     }
 
     private BufferedImage renderImageFromSvg(String svg, int width, int height) throws Exception {

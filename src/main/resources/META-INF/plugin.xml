@@ -15,8 +15,6 @@
             <li><b>Export to File</b> - Save rendered SVG as PNG file</li>
             <li><b>User Settings</b> - Configure MAX_INLINE_SIZE (default 200 KB)</li>
         </ul>
-
-        <p style="font-size: 0.9em;"><b>Version 1.1.0</b> | Compatible: IntelliJ 2023.1+ | <b>Author:</b> Pramod Khalkar</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>

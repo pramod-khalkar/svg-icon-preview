@@ -9,8 +9,8 @@ group = "com.plugin.svg"
 version = "1.1.0"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
@@ -22,8 +22,9 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        create("IC", "2023.1")
+        create("IC-2024.3")
         instrumentationTools()
+        pluginVerifier()
     }
 
     implementation("org.apache.xmlgraphics:batik-transcoder:1.17") {
@@ -47,11 +48,17 @@ dependencies {
 
 intellijPlatform {
     buildSearchableOptions = false
+    pluginVerification {
+        ides {
+            recommended()
+        }
+    }
 }
 
 tasks {
     patchPluginXml {
-        untilBuild.set("299.*")
+        sinceBuild.set("243")
+        untilBuild.set("251.*")
     }
 
     buildPlugin {
