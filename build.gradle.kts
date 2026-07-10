@@ -9,8 +9,8 @@ group = "com.plugin.svg"
 version = "1.1.0"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
@@ -22,7 +22,7 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        create("IC-2024.3")
+        create("IC-2023.1")
         instrumentationTools()
         pluginVerifier()
     }
@@ -57,8 +57,23 @@ intellijPlatform {
 
 tasks {
     patchPluginXml {
-        sinceBuild.set("243")
-        untilBuild.set("251.*")
+//        sinceBuild.set("231")
+        untilBuild.set("299.*")
+
+        changeNotes.set(
+            """
+            <h3>Version 1.1.0</h3>
+            <ul>
+                <li>Initial public release of SVG Toolkit.</li>
+                <li>Smart detection of Base64-encoded SVG images.</li>
+                <li>Gutter icon with instant SVG preview.</li>
+                <li>Show decoded SVG file.</li>
+                <li>Export SVG to PNG.</li>
+                <li>Copy rendered SVG as PNG to the clipboard.</li>
+                <li>Configurable SVG size limit in Settings.</li>
+            </ul>
+            """.trimIndent()
+        )
     }
 
     buildPlugin {
