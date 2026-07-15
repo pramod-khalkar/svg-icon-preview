@@ -52,8 +52,12 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
 
     private static final String SVG_PREFIX = "data:image/svg";
 
+    // Payload characters intentionally exclude whitespace: a data URI payload is a single
+    // contiguous run of base64/url-encoded characters. If whitespace were allowed here, an
+    // unquoted URI in plain text (no closing quote/bracket to delimit it) would greedily consume
+    // the following prose words as if they were part of the payload, corrupting the decode.
     private static final Pattern SVG_ICON_PATTERN = Pattern.compile(
-            "(?i)data:image/svg\\+xml(?:;charset=[^,;]+)?(?:;(base64))?,([A-Za-z0-9+/=_%\\-\\s]+)"
+            "(?i)data:image/svg\\+xml(?:;charset=[^,;]+)?(?:;(base64))?,([A-Za-z0-9+/=_%\\-]+)"
     );
 
     private static final int GUTTER_ICON_SIZE = 16;
@@ -154,14 +158,16 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
             return null;
         }
 
+        // Stop (do not skip) at the first character that isn't a valid base64/url payload
+        // character - including whitespace. Skipping over whitespace here would let the payload
+        // bleed into unrelated trailing text (e.g. plain-text prose following the data URI),
+        // corrupting the decoded SVG.
         StringBuilder sb = new StringBuilder();
-        boolean started = false;
         for (int i = 0; i < normalized.length(); i++) {
             char c = normalized.charAt(i);
             if (Character.isLetterOrDigit(c) || c == '+' || c == '/' || c == '=' || c == '_' || c == '-' || c == '%') {
                 sb.append(c);
-                started = true;
-            } else if (started && !Character.isWhitespace(c)) {
+            } else {
                 break;
             }
         }
