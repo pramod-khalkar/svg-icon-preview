@@ -2,6 +2,11 @@
 
 All notable changes to SVG Toolkit will be documented in this file.
 
+### [1.1.2] - 2026-07-10
+
+**Feature: Support for All File Types**
+- SVG detection and rendering now works in all file types (Java, JSON, HTML, JavaScript, TypeScript, XML, etc.)
+
 ### [1.1.0] - 2026-07-10
 
 **Major Release: Editor Tab Interface & Performance Improvements**

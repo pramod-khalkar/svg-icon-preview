@@ -18,13 +18,8 @@
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.modules.json</depends>
-
     <extensions defaultExtensionNs="com.intellij">
-        <codeInsight.lineMarkerProvider language="JAVA"
-                                        implementationClass="com.plugin.svg.SvgIconLineMarkerProvider"/>
-        <codeInsight.lineMarkerProvider language="JSON"
-                                        implementationClass="com.plugin.svg.SvgIconLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider implementationClass="com.plugin.svg.SvgIconLineMarkerProvider" />
         <applicationConfigurable groupId="tools" displayName="SVG Toolkit"
                                  id="preferences.svgtoolkit"
                                  instance="com.plugin.svg.SvgToolkitSettingsConfigurable"/>

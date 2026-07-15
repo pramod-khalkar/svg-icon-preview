@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.plugin.svg"
-version = "1.1.0"
+version = "1.1.2"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -57,20 +57,20 @@ intellijPlatform {
 
 tasks {
     patchPluginXml {
-//        sinceBuild.set("231")
+        sinceBuild.set("231")
         untilBuild.set("299.*")
 
         changeNotes.set(
             """
-            <h3>Version 1.1.0</h3>
+            <h3>Version 1.1.2</h3>
             <ul>
-                <li>Initial public release of SVG Toolkit.</li>
-                <li>Smart detection of Base64-encoded SVG images.</li>
-                <li>Gutter icon with instant SVG preview.</li>
-                <li>Show decoded SVG file.</li>
-                <li>Export SVG to PNG.</li>
-                <li>Copy rendered SVG as PNG to the clipboard.</li>
-                <li>Configurable SVG size limit in Settings.</li>
+                <li>SVG detection and rendering now works in ALL file types (Java, JSON, HTML, JavaScript, TypeScript, XML, etc.)</li>
+                <li>Editor tab interface with split view: Formatted SVG source | SVG preview</li>
+                <li>Enhanced SVG rendering reliability with improved DOCTYPE handling</li>
+                <li>User-configurable MAX_INLINE_SIZE setting (10 KB–10 MB, default 200 KB)</li>
+                <li>LRU image cache for ~50x faster duplicate loading</li>
+                <li>Zoom controls (10%-400%) with keyboard shortcuts (Ctrl+±, Ctrl+0)</li>
+                <li>Copy as PNG and Export to file capabilities</li>
             </ul>
             """.trimIndent()
         )

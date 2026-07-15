@@ -1,0 +1,70 @@
+{
+  "sampleIcons": {
+    "checkmark": {
+      "description": "Green checkmark icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzQyQTU0NiIgZD0iTTkgMTZsLTUuNS01LjVMNSA5bDQgNCAxMC0xMGwxLjUgMS41TDkgMTZ6Ii8+PC9zdmc+"
+    },
+    "error": {
+      "description": "Red error/cross icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0YyODg4OCIgZD0iTTE5IDYuNDFMMTcuNTkgNSAxMiAxMC41OSA2LjQxIDUgNSA2LjQxIDEwLjU5IDEyIDUgMTcuNTkgNi40MSAxOSAxMiAxMy40MSAxNy41OSAxOSAxOSAxNy41OSAxMy40MSAxMiAxOSA2LjQxeiIvPjwvc3ZnPg=="
+    },
+    "warning": {
+      "description": "Yellow warning icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZCQzAyRCIgZD0iTTEgMjFoMjJMMTIgMlpNMTMgMThINXYtMmg4djJabTAtNEg1di0yaDh2NHoiLz48L3N2Zz4=",
+    },
+    "info": {
+      "description": "Blue info icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiMxOTc2RDIiLz48dGV4dCB4PSIxMiIgeT0iMTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSI+aTwvdGV4dD48L3N2Zz4="
+    },
+    "star": {
+      "description": "Yellow star icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZGQjMwMCIgZD0iTTEyIDJsNC4yNSAxMC41OEgxQTNoMTAuNThMMTYgMjBsMS40MiA0LjU4TDEyIDIwbC00LjQyIDQuNThMMTIgMjBsLTQuNjctMy40MnoiLz48L3N2Zz4="
+    },
+    "heart": {
+      "description": "Red heart icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0U1MzEzNSIgZD0iTTEyIDIxLjM1bC0xLjQ1LTEuMzJDNS40IDEwLjc4IDIgOCA0IDUuNXEwLTIuNjQgMi41LTIuNjR0My41IDIuMzRsMi41IDMuNzRsMi41LTMuNzRxMi0yLjM0IDMuNS0yLjM0dDIuNSAyLjY0cTAgMi41LTkuNTUgMTQuNTN6Ii8+PC9zdmc+"
+    },
+    "download": {
+      "description": "Download arrow icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzAwNzJDNiIgZD0iTTEzIDVINU4wYzAgMS4zNzEuODYzIDIuNjM5IDIuNjAzIDMuNjNMMyAxNWMtLjA2IDIuNDQyIDEuMTMzIDMuNTI1IDMuNTI1IDMuNTI1aDE1djItMTBoLTIuNzc2VjkuNjAxQzE3IDE0Ljc3IDE3IDE0LjYwMzEyIDV6TTEyIDEzLjQyM0w3Ljc4NiAxNC41MjIgOSAxMGg2bDEuMjE0IDQuNTIyeiIvPjwvc3ZnPg=="
+    },
+    "upload": {
+      "description": "Upload arrow icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzFCN0REMiIgZD0iTTkgMTZoNnYtNmg0bC03LTctNyA3aDR2Nnoih0PC9zdmc+"
+    },
+    "settings": {
+      "description": "Settings/gear icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzc3Nzc3NyIgZD0iTTEyIDggYzEuMSAwIDIgLjkgMiAycy0uOSAyLTIgMi0yLS45LTItMiAuOS0yIDItMnptNi43OC0xLjc4bDEuNDctMS40N2ExIC4xIDAgMDAgMCAuMTAuMTRsMi41NiAyLjU2Yy4xLjEuMDcuMjcgMCAuMzZsLTEuNDcgMS40N2MtLjEgMC0uMjMgMC0uMzItLjA3bC0yLjU2LTIuNTZhLjExLjExIDAgMDAgMCA0QzE4Ljc4IDcuNDIgMTguNjUgNy40MiAxOC41NiA3LjV6Ii8+PC9zdmc+"
+    },
+    "user": {
+      "description": "User profile icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzMzMzMzMyIgZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCA4Yy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg=="
+    },
+    "search": {
+      "description": "Search/magnifying glass icon",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzY2NjY2NiIgZD0iTTEwIDEyYzEuMS0uOSAxLjgtMi4zIDEuOC0zLjggMC0yLjgtMi4yLTUtNS01cy01IDIuMi01IDUgMi4yIDUgNSA1YzEuNSAwIDIuOS0uNyAzLjgtMS44bDIuNCAyLjRjLjMuMyAxICuMyAxLjQgMGwuNy0uN2MuMy0uMyAuMy0xIDAtMS40bC0yLjQtMi40em0tNC44LTEuNGMxIDAgMi0uOSAyLTJ1bGEtMiAwLTEgLjktMSAyIC45IDEgMS4xIDJ6Ii8+PC9zdmc+"
+    }
+  },
+  "usage": {
+    "description": "How to use these icons in your code",
+    "example": "Copy any 'icon' value from above and use it in your code. The SVG Icon Preview plugin will automatically detect and display a preview.",
+    "javaExample": {
+      "code": "String checkmarkIcon = \"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzQyQTU0NiIgZD0iTTkgMTZsLTUuNS01LjVMNSA5bDQgNCAxMC0xMGwxLjUgMS41TDkgMTZ6Ii8+PC9zdmc+\";",
+      "preview": "Look at the gutter on the left side of this line to see the checkmark preview!"
+    },
+    "kotlinExample": {
+      "code": "val errorIcon = \"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0YyODg4OCIgZD0iTTE5IDYuNDFMMTcuNTkgNSAxMiAxMC41OSA2LjQxIDUgNSA2LjQxIDEwLjU5IDEyIDUgMTcuNTkgNi40MSAxOSAxMiAxMy40MSAxNy41OSAxOSAxOSAxNy41OSAxMy40MSAxMiAxOSA2LjQxeiIvPjwvc3ZnPg==\";",
+      "preview": "Look at the gutter on the left side of this line to see the error preview!"
+    },
+    "jsonExample": {
+      "code": "{\"warning\": \"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZCQzAyRCIgZD0iTTEgMjFoMjJMMTIgMlpNMTMgMThINXYtMmg4djJ6bTAtNEg1VjloOHY0eiIvPjwvc3ZnPg==\"}",
+      "preview": "JSON files also support SVG base64 data URIs for preview!"
+    }
+  },
+  "notes": {
+    "encoding": "All SVG icons are encoded in base64 format within data URIs",
+    "format": "data:image/svg+xml;base64,<base64-encoded-svg-content>",
+    "browsers": "These data URIs are also compatible with web browsers",
+    "customization": "You can create your own SVGs and encode them as base64 to use with this plugin"
+  }
+}

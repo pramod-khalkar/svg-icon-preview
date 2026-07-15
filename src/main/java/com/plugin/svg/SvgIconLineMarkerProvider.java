@@ -5,272 +5,266 @@ import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ToolWindow;
 import java.util.regex.Pattern;
-import com.plugin.svg.SvgPreviewToolWindowFactory;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.util.io.FileUtil;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 /**
- * @author : Pramod Khalkar
- * @since : 24/06/26, Wed
- **/
+ * Detects base64 (or url-encoded) SVG data URIs in any text-based file and shows a single
+ * gutter icon per line, regardless of the file's language/type (JSON, YAML, plain text, etc.).
+ *
+ * Design notes (see history of this file for why this approach was chosen):
+ *  - Only {@link #collectSlowLineMarkers} produces markers. {@link #getLineMarkerInfo} always
+ *    returns null so there is exactly one code path that can ever add a marker - this is what
+ *    prevents duplicate icons on the same line.
+ *  - Only PSI *leaf* elements (no children) are inspected. For structured languages (JSON, YAML,
+ *    Java, ...) the leaf token already contains the full raw source text of a string/value, so
+ *    scanning it directly is enough - no fragile "value extraction"/reflection is needed. For
+ *    plain text files, the entire file content is typically a single leaf, so the same leaf-scan
+ *    approach works there too. This avoids the historical bug of also matching on composite
+ *    parent PSI nodes (which caused 2-3 icons per line for JSON/YAML).
+ *  - Deduplication of markers is done with a plain local (non-static) Set scoped to a single
+ *    {@link #collectSlowLineMarkers} invocation, keyed by file + line number. Using a static map
+ *    across calls previously caused stale-state bugs (icons disappearing or blocked forever).
+ */
 public class SvgIconLineMarkerProvider implements LineMarkerProvider {
 
     private static final Logger LOG = Logger.getInstance(SvgIconLineMarkerProvider.class);
 
-    // Broad data URI pattern: capture optional base64 marker and payload (DOTALL to allow newlines)
-    private static final Pattern SVG_ICON_PATTERN = Pattern.compile("(?i)data:image/svg\\+xml(?:;charset=[^,;]+)?(?:;(base64))?,(.*)", Pattern.DOTALL);
-    private static final int GUTTER_ICON_SIZE = 16; // Size of the gutter icon in pixels
-    private static final int PREVIEW_ICON_SIZE = 300; // Size of the preview icon in pixels
+    private static final String SVG_PREFIX = "data:image/svg";
 
-    // Shared LRU cache for rendered images
+    private static final Pattern SVG_ICON_PATTERN = Pattern.compile(
+            "(?i)data:image/svg\\+xml(?:;charset=[^,;]+)?(?:;(base64))?,([A-Za-z0-9+/=_%\\-\\s]+)"
+    );
+
+    private static final int GUTTER_ICON_SIZE = 16;
+    private static final int PREVIEW_ICON_SIZE = 300;
     private static final SvgImageCache imageCache = new SvgImageCache();
 
     @Override
     public @Nullable LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement psiElement) {
+        // Intentionally always null. All marker creation happens in collectSlowLineMarkers so
+        // that there is a single, deterministic path producing at most one marker per line.
         return null;
     }
 
     @Override
-    public void collectSlowLineMarkers(@NotNull List<? extends PsiElement> elements, @NotNull Collection<? super LineMarkerInfo<?>> result) {
-        for (PsiElement element : elements) {
-            if (element.getFirstChild() != null) {
+    public void collectSlowLineMarkers(@NotNull List<? extends PsiElement> elements,
+                                        @NotNull Collection<? super LineMarkerInfo<?>> result) {
+        if (elements.isEmpty()) {
+            return;
+        }
+
+        ReadAction.run(() -> {
+            // Scoped to this single pass only - guarantees at most one marker per (file, line)
+            // for this call, without leaking state across highlighting passes.
+            Set<String> seenLineKeys = new HashSet<>();
+
+            for (PsiElement element : elements) {
+                // Only inspect leaf PSI nodes. Composite parents wrapping the same source text
+                // (e.g. a JSON/YAML value expression wrapping its literal token) would otherwise
+                // be scanned twice for the same text, producing duplicate icons.
+                if (element.getFirstChild() != null) {
+                    continue;
+                }
+
+                processLeaf(element, seenLineKeys, result);
+            }
+        });
+    }
+
+    private void processLeaf(@NotNull PsiElement element,
+                              @NotNull Set<String> seenLineKeys,
+                              @NotNull Collection<? super LineMarkerInfo<?>> result) {
+        PsiFile file = element.getContainingFile();
+        if (file == null || file.getVirtualFile() == null) {
+            return;
+        }
+        if (!file.getViewProvider().isPhysical() || file != file.getOriginalFile()) {
+            return;
+        }
+
+        String elementText = element.getText();
+        if (elementText == null || elementText.isEmpty()
+                || elementText.toLowerCase(Locale.ROOT).indexOf(SVG_PREFIX) < 0) {
+            return;
+        }
+
+        Document document = PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
+        int elementStart = element.getTextRange().getStartOffset();
+        String filePath = file.getVirtualFile().getPath();
+
+        Matcher matcher = SVG_ICON_PATTERN.matcher(elementText);
+        while (matcher.find()) {
+            String marker = matcher.group(1);
+            String payload = trimPayloadForAnyFile(matcher.group(2));
+            if (payload == null || payload.isEmpty()) {
                 continue;
             }
 
-            LineMarkerInfo<?> info = buildMarker(element);
+            int matchStartInDoc = elementStart + matcher.start();
+            int matchEndInDoc = elementStart + matcher.end();
+
+            int lineNumber = 0;
+            if (document != null && document.getTextLength() > 0) {
+                int safeOffset = Math.max(0, Math.min(matchStartInDoc, document.getTextLength() - 1));
+                lineNumber = document.getLineNumber(safeOffset);
+            }
+
+            String lineKey = filePath + "#" + lineNumber;
+            if (!seenLineKeys.add(lineKey)) {
+                // Already have a marker for this line in this pass.
+                continue;
+            }
+
+            TextRange markerRange = new TextRange(matchStartInDoc, Math.min(matchStartInDoc + 1, matchEndInDoc));
+            String sourceText = matcher.group(0);
+            LineMarkerInfo<?> info = buildMarker(element, markerRange, marker, payload, sourceText);
             if (info != null) {
                 result.add(info);
             }
         }
     }
 
-    private String getElementValue(@NotNull PsiElement element) {
-        PsiElement parent = element.getParent();
-        if (parent != null) {
-            // Walk up the tree to find the top-most concatenation expression (Java Polyadic or Binary Expression)
-            PsiElement current = parent;
-            while (current.getParent() != null) {
-                String parentClassName = current.getParent().getClass().getName();
-                if (parentClassName.contains("PolyadicExpression") || parentClassName.contains("BinaryExpression")) {
-                    current = current.getParent();
-                } else {
-                    break;
-                }
-            }
-
-            // Try to evaluate the constant expression using JavaPsiFacade helper via reflection
-            try {
-                Class<?> javaPsiFacadeClass = Class.forName("com.intellij.psi.JavaPsiFacade");
-                Object javaPsiFacade = javaPsiFacadeClass.getMethod("getInstance", com.intellij.openapi.project.Project.class)
-                        .invoke(null, element.getProject());
-                Object helper = javaPsiFacadeClass.getMethod("getConstantEvaluationHelper").invoke(javaPsiFacade);
-                Object value = helper.getClass().getMethod("computeConstantExpression", com.intellij.psi.PsiElement.class)
-                        .invoke(helper, current);
-                if (value instanceof String) {
-                    return (String) value;
-                }
-            } catch (Exception ignored) {
-            }
-
-            // Fallback to calling getValue() on the parent literal (works for both Java and JSON literals)
-            try {
-                java.lang.reflect.Method getValueMethod = parent.getClass().getMethod("getValue");
-                Object val = getValueMethod.invoke(parent);
-                if (val instanceof String) {
-                    return (String) val;
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
-        // Fallback to calling getValue() on element itself
-        try {
-            java.lang.reflect.Method getValueMethod = element.getClass().getMethod("getValue");
-            Object val = getValueMethod.invoke(element);
-            if (val instanceof String) {
-                return (String) val;
-            }
-        } catch (Exception ignored) {
-        }
-
-        return element.getText();
-    }
-
-    private LineMarkerInfo<?> buildMarker(@NotNull PsiElement element) {
-        // Access PSI elements inside a read action to avoid threading issues
-        return ReadAction.compute(() -> {
-        String text = getElementValue(element);
-        if (text == null) {
-            return null;
-        }
-
-        Matcher m = SVG_ICON_PATTERN.matcher(text);
-        if (!m.find()) {
-            return null;
-        }
-
-        String marker = m.group(1); // 'base64' if present
-        String payload = m.group(2);
+    private @Nullable String trimPayloadForAnyFile(@Nullable String payload) {
         if (payload == null) {
             return null;
         }
-        payload = SvgDataUriUtil.normalizePayload(payload);
+        String normalized = SvgDataUriUtil.normalizePayload(payload);
+        if (normalized == null) {
+            return null;
+        }
 
-        int payloadLength = payload.length();
+        StringBuilder sb = new StringBuilder();
+        boolean started = false;
+        for (int i = 0; i < normalized.length(); i++) {
+            char c = normalized.charAt(i);
+            if (Character.isLetterOrDigit(c) || c == '+' || c == '/' || c == '=' || c == '_' || c == '-' || c == '%') {
+                sb.append(c);
+                started = true;
+            } else if (started && !Character.isWhitespace(c)) {
+                break;
+            }
+        }
+
+        String cleaned = sb.toString().trim();
+        return cleaned.isEmpty() ? normalized : cleaned;
+    }
+
+    private @Nullable LineMarkerInfo<?> buildMarker(@NotNull PsiElement element,
+                                                     @NotNull TextRange markerRange,
+                                                     @Nullable String marker,
+                                                     @NotNull String payload,
+                                                     @NotNull String sourceText) {
         String shortId = Integer.toHexString(payload.hashCode());
-
-        // Log at debug level to keep the IDE logs clean
-        LOG.debug("[SVG Toolkit] SVG DETECTED: id=" + shortId + " length=" + payloadLength + " base64=" + (marker != null));
 
         String svgText;
         try {
-            LOG.debug("[SVG Toolkit] ATTEMPTING DECODE for id=" + shortId);
             svgText = SvgDataUriUtil.decodePayload(payload, marker != null);
-            LOG.debug("[SVG Toolkit] DECODE RETURNED for id=" + shortId + " result=" + (svgText != null ? "NON-NULL" : "NULL"));
         } catch (Throwable t) {
-            LOG.warn("[SVG Toolkit] DECODE THREW EXCEPTION for id=" + shortId + ": " + t.getMessage(), t);
+            LOG.warn("[SVG Toolkit] Decode failed for id=" + shortId + ": " + t.getMessage(), t);
             return null;
         }
 
         if (svgText == null) {
-            LOG.warn("[SVG Toolkit] SVG DECODE FAILED: id=" + shortId);
             return null;
         }
 
-        LOG.debug("[SVG Toolkit] SVG DECODED: id=" + shortId + " svg_length=" + svgText.length());
-
         Project project = element.getProject();
-
-        // create a dynamic icon that can be filled later
         SvgDynamicIcon dynamicIcon = new SvgDynamicIcon(GUTTER_ICON_SIZE, project);
+        BufferedImage cached = imageCache.get(shortId);
+        if (cached != null) {
+            dynamicIcon.setImage(cached);
+        }
 
-        // Get configured max inline size from settings (using modern API)
-        long maxInlineSize = 200000; // default 200KB
+        long maxInlineSize = 200000;
         try {
             SvgToolkitSettings settings = ApplicationManager.getApplication().getService(SvgToolkitSettings.class);
             if (settings != null) {
                 maxInlineSize = settings.getMaxInlineSizeBytes();
-                LOG.debug("[SVG Toolkit] Settings loaded: maxInlineSize=" + maxInlineSize);
-            } else {
-                LOG.debug("[SVG Toolkit] Settings service returned null, using default 200KB");
             }
         } catch (Throwable e) {
-            LOG.warn("[SVG Toolkit] Failed to get settings, using default: " + e.getMessage(), e);
+            LOG.warn("[SVG Toolkit] Failed to read settings: " + e.getMessage(), e);
         }
-
-        LOG.debug("[SVG Toolkit] MAX_INLINE_SIZE: " + maxInlineSize + " bytes");
 
         boolean isLargePayload = svgText.length() > maxInlineSize;
-
-        LOG.debug("[SVG Toolkit] IS_LARGE: " + isLargePayload + " (svg=" + svgText.length() + " vs max=" + maxInlineSize + ")");
-
-        // if payload is small enough, render in background immediately
-        if (!isLargePayload) {
-            LOG.debug("[SVG Toolkit] RENDERING INLINE for id=" + shortId + ", queuing task...");
-            Runnable renderTask = () -> {
-                try {
-                    LOG.debug("[SVG Toolkit] BACKGROUND THREAD EXECUTED: Starting render for id=" + shortId);
-                    BufferedImage img = renderImageFromSvg(svgText, GUTTER_ICON_SIZE, GUTTER_ICON_SIZE);
-                    LOG.debug("[SVG Toolkit] BACKGROUND THREAD: Render result for id=" + shortId + " = " + (img != null ? "SUCCESS" : "NULL"));
-                    if (img != null) {
-                        dynamicIcon.setImage(img);
-                        LOG.debug("[SVG Toolkit] ICON UPDATED for id=" + shortId);
-                    } else {
-                        LOG.warn("[SVG Toolkit] RENDER FAILED: null image returned for id=" + shortId);
-                    }
-                } catch (Exception e) {
-                    LOG.warn("[SVG Toolkit] BACKGROUND THREAD ERROR for id=" + shortId + ": " + e.getMessage(), e);
-                }
-            };
-            ApplicationManager.getApplication().executeOnPooledThread(renderTask);
-            LOG.debug("[SVG Toolkit] TASK QUEUED for id=" + shortId);
-        } else {
-            LOG.debug("[SVG Toolkit] LARGE PAYLOAD, will render on demand for id=" + shortId + " (size=" + svgText.length() + ")");
-        }
-
-        GutterIconNavigationHandler<PsiElement> clickHandler = ((mouseEvent, psi) -> {
-            LOG.info("[SVG Toolkit] CLICK HANDLER INVOKED for id=" + shortId);
+        if (!isLargePayload && cached == null) {
             ApplicationManager.getApplication().executeOnPooledThread(() -> {
                 try {
-                    LOG.info("[SVG Toolkit] CLICK: Rendering preview for id=" + shortId);
-                    BufferedImage preview = renderImageFromSvg(svgText, PREVIEW_ICON_SIZE, PREVIEW_ICON_SIZE);
-                    LOG.info("[SVG Toolkit] CLICK: Preview render result = " + (preview != null ? "SUCCESS" : "NULL"));
-                    if (preview != null) {
-                        if (!dynamicIcon.hasImage()) {
-                            BufferedImage gutterImg = renderImageFromSvg(svgText, GUTTER_ICON_SIZE, GUTTER_ICON_SIZE);
-                            dynamicIcon.setImage(gutterImg);
-                        }
-                        SwingUtilities.invokeLater(() -> {
-                            LOG.info("[SVG Toolkit] CLICK: Showing preview in editor tab for id=" + shortId);
-                            // Create and open the virtual file
-                            String tempFileName = "svg-preview-" + System.currentTimeMillis();
-                            SvgVirtualFile virtualFile = new SvgVirtualFile(tempFileName, svgText, text, preview);
-                            FileEditorManager.getInstance(project).openFile(virtualFile, true);
-                        });
-                    } else {
-                        SwingUtilities.invokeLater(() -> {
-                            JOptionPane.showMessageDialog(
-                                    SwingUtilities.getWindowAncestor(
-                                            com.intellij.openapi.wm.WindowManager.getInstance().getFrame(project)),
-                                    "Failed to render SVG preview. The SVG data may be invalid, unsupported, or too large.",
-                                    "Preview Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                        });
+                    BufferedImage img = renderImageFromSvg(svgText, GUTTER_ICON_SIZE, GUTTER_ICON_SIZE);
+                    if (img != null) {
+                        imageCache.put(shortId, img);
+                        dynamicIcon.setImage(img);
                     }
                 } catch (Exception e) {
-                    LOG.warn("[SVG Toolkit] CLICK HANDLER ERROR for id=" + shortId + ": " + e.getMessage(), e);
-                    SwingUtilities.invokeLater(() -> {
-                        JOptionPane.showMessageDialog(
-                                SwingUtilities.getWindowAncestor(
-                                        com.intellij.openapi.wm.WindowManager.getInstance().getFrame(project)),
-                                "Error during SVG preview: " + e.getMessage(),
-                                "Preview Error",
-                                JOptionPane.ERROR_MESSAGE);
-                    });
+                    LOG.warn("[SVG Toolkit] Gutter render failed for id=" + shortId + ": " + e.getMessage(), e);
                 }
             });
-        });
+        }
 
-        // Tooltip: show cache status and size info
-        Supplier<String> tooltipSupplier = () -> {
-            if (isLargePayload) {
-                return "SVG Preview (large, " + (svgText.length() / 1024) + "KB) - Click to load preview";
-            } else {
-                return "SVG Preview - Click to open full preview";
+        GutterIconNavigationHandler<PsiElement> clickHandler = (mouseEvent, psi) -> ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            try {
+                BufferedImage preview = renderImageFromSvg(svgText, PREVIEW_ICON_SIZE, PREVIEW_ICON_SIZE);
+                if (preview == null) {
+                    SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
+                            SwingUtilities.getWindowAncestor(com.intellij.openapi.wm.WindowManager.getInstance().getFrame(project)),
+                            "Failed to render SVG preview.",
+                            "Preview Error",
+                            JOptionPane.ERROR_MESSAGE));
+                    return;
+                }
+
+                if (!dynamicIcon.hasImage()) {
+                    BufferedImage gutterImg = imageCache.get(shortId);
+                    if (gutterImg == null) {
+                        gutterImg = renderImageFromSvg(svgText, GUTTER_ICON_SIZE, GUTTER_ICON_SIZE);
+                        imageCache.put(shortId, gutterImg);
+                    }
+                    dynamicIcon.setImage(gutterImg);
+                }
+
+                SwingUtilities.invokeLater(() -> {
+                    String tempFileName = "svg-preview-" + System.currentTimeMillis();
+                    SvgVirtualFile virtualFile = new SvgVirtualFile(tempFileName, svgText, sourceText, preview);
+                    FileEditorManager.getInstance(project).openFile(virtualFile, true);
+                });
+            } catch (Exception e) {
+                LOG.warn("[SVG Toolkit] Preview failed for id=" + shortId + ": " + e.getMessage(), e);
+                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
+                        SwingUtilities.getWindowAncestor(com.intellij.openapi.wm.WindowManager.getInstance().getFrame(project)),
+                        "Error during SVG preview: " + e.getMessage(),
+                        "Preview Error",
+                        JOptionPane.ERROR_MESSAGE));
             }
-        };
-
-        LOG.debug("[SVG Toolkit] MARKER CREATED for id=" + shortId);
-        return new LineMarkerInfo<PsiElement>(element,
-                element.getTextRange(), dynamicIcon, psi -> tooltipSupplier.get(), clickHandler, GutterIconRenderer.Alignment.LEFT);
         });
+
+        Supplier<String> tooltipSupplier = () -> isLargePayload
+                ? "SVG Preview (large, " + (svgText.length() / 1024) + "KB) - Click to load preview"
+                : "SVG Preview - Click to open full preview";
+
+        return new LineMarkerInfo<>(element, markerRange, dynamicIcon, psi -> tooltipSupplier.get(), clickHandler, GutterIconRenderer.Alignment.LEFT);
     }
 
     private BufferedImage renderImageFromSvg(String svg, int width, int height) throws Exception {
         return SvgRenderer.render(svg, width, height);
     }
-
-    }
+}

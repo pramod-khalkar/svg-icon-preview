@@ -1,7 +1,7 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
   <idea-version since-build="231.8109" />
-  <version>1.1.0</version>
+  <version>1.1.2</version>
   <id>com.plugin.svg-icon-preview</id>
   <name>SVG Toolkit</name>
   <vendor>Pramod Khalkar</vendor>
@@ -19,12 +19,10 @@
             <li><b>User Settings</b> - Configure MAX_INLINE_SIZE (default 200 KB)</li>
         </ul>
 
-        <p style="font-size: 0.9em;"><b>Version 1.1.0</b> | Compatible: IntelliJ 2023.1+ | <b>Author:</b> Pramod Khalkar</p>]]></description>
+        <p style="font-size: 0.9em;"><b>Version 1.1.2</b> | Compatible: IntelliJ 2023.1+ | <b>Author:</b> Pramod Khalkar</p>]]></description>
   <depends>com.intellij.modules.platform</depends>
-  <depends>com.intellij.modules.json</depends>
   <extensions defaultExtensionNs="com.intellij">
-    <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.plugin.svg.SvgIconLineMarkerProvider" />
-    <codeInsight.lineMarkerProvider language="JSON" implementationClass="com.plugin.svg.SvgIconLineMarkerProvider" />
+    <codeInsight.lineMarkerProvider implementationClass="com.plugin.svg.SvgIconLineMarkerProvider" />
     <applicationConfigurable groupId="tools" displayName="SVG Toolkit" id="preferences.svgtoolkit" instance="com.plugin.svg.SvgToolkitSettingsConfigurable" />
     <applicationService serviceInterface="com.plugin.svg.SvgToolkitSettings" serviceImplementation="com.plugin.svg.SvgToolkitSettings" />
     <fileEditorProvider implementation="com.plugin.svg.SvgFileEditorProvider"/>
