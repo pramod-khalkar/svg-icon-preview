@@ -1,0 +1,12 @@
+# Sample Icons (Markdown)
+
+This markdown file verifies gutter icon detection inside `.md` files.
+
+## Checkmark
+`data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzQyQTU0NiIgZD0iTTkgMTZsLTUuNS01LjVMNSA5bDQgNCAxMC0xMGwxLjUgMS41TDkgMTZ6Ii8+PC9zdmc+`
+
+## Error
+`data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0YyODg4OCIgZD0iTTE5IDYuNDFMMTcuNTkgNSAxMiAxMC41OSA2LjQxIDUgNSA2LjQxIDEwLjU5IDEyIDUgMTcuNTkgNi40MSAxOSAxMiAxMy40MSAxNy41OSAxOSAxOSAxNy41OSAxMy40MSAxMnoiLz48L3N2Zz4=`
+
+## Cloud (inline HTML img tag)
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzYwN0Q4QiIgZD0iTTE5IDE4SDZhNCA0IDAgMDEtMS03LjlBNSA1IDAgMDExNCA2YTQuNSA0LjUgMCAwMTQuNSA0LjVWMTFhMyAzIDAgMDEwIDYuOXoiLz48L3N2Zz4=" alt="cloud icon" />

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sample icons in XML - verifies gutter icon detection for XML files -->
+<icons>
+    <icon name="checkmark" description="Green checkmark icon">
+        data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzQyQTU0NiIgZD0iTTkgMTZsLTUuNS01LjVMNSA5bDQgNCAxMC0xMGwxLjUgMS41TDkgMTZ6Ii8+PC9zdmc+
+    </icon>
+    <icon name="error" description="Red error/cross icon">
+        data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0YyODg4OCIgZD0iTTE5IDYuNDFMMTcuNTkgNSAxMiAxMC41OSA2LjQxIDUgNSA2LjQxIDEwLjU5IDEyIDUgMTcuNTkgNi40MSAxOSAxMiAxMy40MSAxNy41OSAxOSAxOSAxNy41OSAxMy40MSAxMnoiLz48L3N2Zz4=
+    </icon>
+    <icon name="warning" description="Yellow warning icon" data="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZCQzAyRCIgZD0iTTEgMjFoMjJMMTIgMnoiLz48L3N2Zz4=" />
+</icons>

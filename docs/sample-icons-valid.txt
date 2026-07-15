@@ -1,0 +1,18 @@
+Sample icons - plain text file (.txt)
+=======================================
+
+This file has no structured syntax at all. Each line below embeds a raw
+base64 SVG data URI directly in free-form prose, to verify gutter icon
+detection also works for plain text.
+
+Checkmark icon: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzQyQTU0NiIgZD0iTTkgMTZsLTUuNS01LjVMNSA5bDQgNCAxMC0xMGwxLjUgMS41TDkgMTZ6Ii8+PC9zdmc+
+
+Error icon here -> data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0YyODg4OCIgZD0iTTE5IDYuNDFMMTcuNTkgNSAxMiAxMC41OSA2LjQxIDUgNSA2LjQxIDEwLjU5IDEyIDUgMTcuNTkgNi40MSAxOSAxMiAxMy40MSAxNy41OSAxOSAxOSAxNy41OSAxMy40MSAxMnoiLz48L3N2Zz4=
+
+Warning icon (base64): data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZCQzAyRCIgZD0iTTEgMjFoMjJMMTIgMnoiLz48L3N2Zz4=
+
+Info icon: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiMxOTc2RDIiLz48L3N2Zz4=
+
+Star icon: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZGQjMwMCIgZD0iTTEyIDJsMi45IDYuNiA3LjEuNi01LjQgNC43IDEuNiA2LjlMMTIgMTcuMyA1LjggMjAuOGwxLjYtNi45LTUuNC00LjcgNy4xLS42eiIvPjwvc3ZnPg==
+
+End of file.

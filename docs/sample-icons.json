@@ -10,7 +10,7 @@
     },
     "warning": {
       "description": "Yellow warning icon",
-      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZCQzAyRCIgZD0iTTEgMjFoMjJMMTIgMlpNMTMgMThINXYtMmg4djJabTAtNEg1di0yaDh2NHoiLz48L3N2Zz4=",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZCQzAyRCIgZD0iTTEgMjFoMjJMMTIgMlpNMTMgMThINXYtMmg4djJabTAtNEg1di0yaDh2NHoiLz48L3N2Zz4="
     },
     "info": {
       "description": "Blue info icon",

@@ -1,0 +1,10 @@
+// Sample icons in a JavaScript file - verifies gutter icon detection for
+// string literals / template literals / object property values.
+
+const icons = {
+  checkmark: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzQyQTU0NiIgZD0iTTkgMTZsLTUuNS01LjVMNSA5bDQgNCAxMC0xMGwxLjUgMS41TDkgMTZ6Ii8+PC9zdmc+",
+  error: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0YyODg4OCIgZD0iTTE5IDYuNDFMMTcuNTkgNSAxMiAxMC41OSA2LjQxIDUgNSA2LjQxIDEwLjU5IDEyIDUgMTcuNTkgNi40MSAxOSAxMiAxMy40MSAxNy41OSAxOSAxOSAxNy41OSAxMy40MSAxMnoiLz48L3N2Zz4=',
+  star: `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZGQjMwMCIgZD0iTTEyIDJsMi45IDYuNiA3LjEuNi01LjQgNC43IDEuNiA2LjlMMTIgMTcuMyA1LjggMjAuOGwxLjYtNi45LTUuNC00LjcgNy4xLS42eiIvPjwvc3ZnPg==`,
+};
+
+module.exports = icons;
