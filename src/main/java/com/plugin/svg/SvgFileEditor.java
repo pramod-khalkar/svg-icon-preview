@@ -6,15 +6,16 @@ import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.fileTypes.StdFileTypes;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
-import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.ui.EditorTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,21 +28,11 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 /**
  * File editor for SVG previews showing editable SVG source and visual preview side by side.
@@ -51,7 +42,7 @@ public class SvgFileEditor implements FileEditor {
     private static final Pattern SVG_ICON_PATTERN = Pattern.compile("(?i)data:image/svg\\+xml(?:;charset=[^,;]+)?(?:;(base64))?,(.*)", Pattern.DOTALL);
     private final VirtualFile virtualFile;
     private final JPanel mainPanel;
-    private final SvgSourceEditorField svgTextArea;
+    private final EditorEx svgEditor;
     private final SvgPreviewPanel previewPanel;
     private final JLabel imageDetailsLabel;
     private final Timer previewUpdateTimer;
@@ -64,9 +55,19 @@ public class SvgFileEditor implements FileEditor {
         this.virtualFile = virtualFile;
 
         // Initialize components
-        this.svgTextArea = new SvgSourceEditorField(project);
-        this.svgTextArea.setOneLineMode(false);
-        this.svgTextArea.setToolTipText("Edit the SVG markup; changes update this preview only.");
+        Document document = Objects.requireNonNull(
+                FileDocumentManager.getInstance().getDocument(virtualFile),
+                "Unable to create a document for the SVG preview file");
+        Editor editor = EditorFactory.getInstance().createEditor(document, project, virtualFile, false);
+        if (!(editor instanceof EditorEx)) {
+            EditorFactory.getInstance().releaseEditor(editor);
+            throw new IllegalStateException("IntelliJ did not create an extended SVG editor");
+        }
+        this.svgEditor = (EditorEx) editor;
+        this.svgEditor.setVerticalScrollbarVisible(true);
+        this.svgEditor.setHorizontalScrollbarVisible(true);
+        this.svgEditor.getSettings().setLineNumbersShown(true);
+        this.svgEditor.getSettings().setUseSoftWraps(false);
 
         this.previewPanel = new SvgPreviewPanel();
         this.imageDetailsLabel = new JLabel();
@@ -80,7 +81,7 @@ public class SvgFileEditor implements FileEditor {
         // Split pane for editable SVG source and preview
         JPanel sourcePanel = new JPanel(new BorderLayout());
         sourcePanel.setBorder(BorderFactory.createTitledBorder("SVG Source (editable)"));
-        sourcePanel.add(svgTextArea, BorderLayout.CENTER);
+        sourcePanel.add(svgEditor.getComponent(), BorderLayout.CENTER);
         JScrollPane previewScrollPane = new JScrollPane(previewPanel);
         JPanel previewContainer = new JPanel(new BorderLayout());
         previewContainer.add(createPreviewToolbar(), BorderLayout.NORTH);
@@ -114,7 +115,7 @@ public class SvgFileEditor implements FileEditor {
 
         // Load content from the virtual file
         loadContentFromVirtualFile();
-        this.svgTextArea.getDocument().addDocumentListener(new DocumentListener() {
+        this.svgEditor.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void beforeDocumentChange(DocumentEvent event) {
             }
@@ -157,13 +158,6 @@ public class SvgFileEditor implements FileEditor {
                 }
             }
 
-            // Show decoded SVG in the text area (or raw content if decoding failed)
-            String displayText = rawContent;
-            if (svgText != null) {
-                displayText = formatXml(svgText);
-            }
-            this.svgTextArea.setText(displayText);
-
             if (svgText != null) {
                 BufferedImage previewImage = virtualFile instanceof SvgVirtualFile
                         ? ((SvgVirtualFile) virtualFile).getPreviewImage()
@@ -182,13 +176,11 @@ public class SvgFileEditor implements FileEditor {
         } catch (Exception e) {
             if (e instanceof IOException) {
                 LOG.warn("[SVG Toolkit] Error reading content from virtual file: " + e.getMessage(), e);
-                this.svgTextArea.setText("Error reading file content");
                 this.currentImage = null;
                 this.previewPanel.setImage(null);
                 imageDetailsLabel.setText("Error reading file");
             } else {
                 LOG.warn("[SVG Toolkit] Error processing SVG: " + e.getMessage(), e);
-                this.svgTextArea.setText("Error processing SVG - see idea.log for details");
                 this.currentImage = null;
                 this.previewPanel.setImage(null);
                 imageDetailsLabel.setText("Error processing SVG - see idea.log for details");
@@ -202,7 +194,7 @@ public class SvgFileEditor implements FileEditor {
     }
 
     private void renderCurrentSvg() {
-        String svgText = svgTextArea.getText();
+        String svgText = svgEditor.getDocument().getText();
         long generation = renderGeneration.get();
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             BufferedImage image = SvgRenderer.render(svgText, 400, 400);
@@ -224,30 +216,6 @@ public class SvgFileEditor implements FileEditor {
                     image.getWidth(), image.getHeight(), kb));
         } else {
             imageDetailsLabel.setText("Unable to render SVG");
-        }
-    }
-
-    private String formatXml(String xml) {
-        if (xml == null || xml.isEmpty()) {
-            return xml;
-        }
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new StringReader(xml)));
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            transformerFactory.setAttribute("indent-number", 2);
-            Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            StringWriter writer = new StringWriter();
-            transformer.transform(new DOMSource(doc), new StreamResult(writer));
-            return writer.toString();
-        } catch (Exception e) {
-            LOG.warn("[SVG Toolkit] Failed to format XML: " + e.getMessage(), e);
-            return xml; // fallback
         }
     }
 
@@ -347,24 +315,6 @@ public class SvgFileEditor implements FileEditor {
         });
     }
 
-    private static final class SvgSourceEditorField extends EditorTextField {
-        private SvgSourceEditorField(Project project) {
-            super(project, StdFileTypes.XML);
-        }
-
-        @Override
-        protected void onEditorAdded(Editor editor) {
-            super.onEditorAdded(editor);
-            if (editor instanceof EditorEx) {
-                EditorEx editorEx = (EditorEx) editor;
-                editorEx.setVerticalScrollbarVisible(true);
-                editorEx.setHorizontalScrollbarVisible(true);
-                editorEx.getSettings().setLineNumbersShown(true);
-                editorEx.getSettings().setUseSoftWraps(false);
-            }
-        }
-    }
-
     // FileEditor implementations
     @NotNull
     @Override
@@ -425,7 +375,7 @@ public class SvgFileEditor implements FileEditor {
 
     @Override
     public JComponent getPreferredFocusedComponent() {
-        return svgTextArea.getFocusTarget();
+        return svgEditor.getContentComponent();
     }
 
     @Override
@@ -433,6 +383,7 @@ public class SvgFileEditor implements FileEditor {
         disposed = true;
         previewUpdateTimer.stop();
         renderGeneration.incrementAndGet();
+        EditorFactory.getInstance().releaseEditor(svgEditor);
     }
 
     @Override
@@ -696,7 +647,7 @@ public class SvgFileEditor implements FileEditor {
 
     private void copyBase64ToClipboard() {
         try {
-            String encodedSvg = SvgDataUriUtil.encodeBase64(svgTextArea.getText());
+            String encodedSvg = SvgDataUriUtil.encodeBase64(svgEditor.getDocument().getText());
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(encodedSvg), null);
             JOptionPane.showMessageDialog(mainPanel,
                     "Base64 SVG payload copied. Replace the payload in the original data URI manually.",

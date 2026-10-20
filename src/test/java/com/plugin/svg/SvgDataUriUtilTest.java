@@ -24,6 +24,13 @@ public class SvgDataUriUtilTest {
     }
 
     @Test
+    public void testSvgXmlFormatterPrettyPrintsMarkup() {
+        String formatted = SvgXmlFormatter.format("<svg><rect/></svg>");
+        assertTrue(formatted.contains(System.lineSeparator()) || formatted.contains("\n"));
+        assertTrue(formatted.contains("<rect"));
+    }
+
+    @Test
     public void testDecodeUrlSafeBase64() {
         String b64 = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(SIMPLE_SVG.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         String decoded = SvgDataUriUtil.decodePayload(b64, true);

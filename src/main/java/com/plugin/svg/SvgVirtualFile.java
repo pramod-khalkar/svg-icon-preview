@@ -11,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.awt.image.BufferedImage;
 
@@ -26,12 +28,15 @@ public class SvgVirtualFile extends VirtualFile {
     private final String svgText;      // decoded SVG markup
     private final String rawBase64;    // original base64 payload shown in left pane
     private final BufferedImage previewImage;
+    private volatile String fileContent;
+    private volatile long modificationStamp = System.currentTimeMillis();
 
     public SvgVirtualFile(String displayName, String svgText, String rawBase64, BufferedImage previewImage) {
         this.displayName = displayName;
         this.svgText = svgText;
         this.rawBase64 = rawBase64;
         this.previewImage = previewImage;
+        this.fileContent = SvgXmlFormatter.format(svgText);
     }
 
     public String getSvgText() { return svgText; }
@@ -41,21 +46,28 @@ public class SvgVirtualFile extends VirtualFile {
     @Override public @NotNull String getName() { return displayName; }
     @Override public @NotNull VirtualFileSystem getFileSystem() { return SvgVirtualFileSystem.INSTANCE; }
     @Override public @NotNull String getPath() { return "/" + displayName; }
-    @Override public boolean isWritable() { return false; }
+    @Override public boolean isWritable() { return true; }
     @Override public boolean isDirectory() { return false; }
     @Override public boolean isValid() { return true; }
     @Override public VirtualFile getParent() { return null; }
     @Override public VirtualFile[] getChildren() { return VirtualFile.EMPTY_ARRAY; }
-    @Override public @NotNull byte[] contentsToByteArray() throws IOException { return rawBase64.getBytes(StandardCharsets.UTF_8); }
-    @Override public long getTimeStamp() { return System.currentTimeMillis(); }
-    @Override public long getLength() { return rawBase64.length(); }
+    @Override public @NotNull byte[] contentsToByteArray() throws IOException { return fileContent.getBytes(StandardCharsets.UTF_8); }
+    @Override public long getTimeStamp() { return modificationStamp; }
+    @Override public long getLength() { return fileContent.getBytes(StandardCharsets.UTF_8).length; }
     @Override public void refresh(boolean asynchronous, boolean recursive, @Nullable Runnable postRunnable) {}
-    @Override public @NotNull InputStream getInputStream() throws IOException { return InputStream.nullInputStream(); }
-    @Override public long getModificationStamp() { return System.currentTimeMillis(); }
+    @Override public @NotNull InputStream getInputStream() throws IOException { return new ByteArrayInputStream(contentsToByteArray()); }
+    @Override public long getModificationStamp() { return modificationStamp; }
 
     @Override
     public @NotNull OutputStream getOutputStream(Object requestor, long newModificationStamp, long newTimeStamp) throws IOException {
-        throw new UnsupportedOperationException();
+        return new ByteArrayOutputStream() {
+            @Override
+            public void close() throws IOException {
+                super.close();
+                fileContent = toString(StandardCharsets.UTF_8);
+                modificationStamp = Math.max(newModificationStamp, System.currentTimeMillis());
+            }
+        };
     }
 
     @Override
