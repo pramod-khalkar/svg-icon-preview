@@ -4,15 +4,18 @@
     <name>SVG Toolkit</name>
     <vendor>Pramod Khalkar</vendor>
     <description><![CDATA[
-        <p><b>SVG Toolkit</b> - Comprehensive SVG inspection and export for IntelliJ IDEA</p>
+        <p><b>SVG Toolkit</b> - Inspect, edit, preview, and export SVG graphics in IntelliJ IDEA.</p>
 
         <h3>Core Features</h3>
         <ul>
             <li><b>Smart SVG Detection</b> - Finds <code>data:image/svg+xml;base64,...</code> strings in code (handles line breaks, charset, multiple encodings)</li>
             <li><b>Gutter Icon Preview</b> - Shows 16×16px preview icon in editor margin</li>
-            <li><b>Full-Size Preview</b> - Click icon to open enhanced preview dialog with toolbar</li>
-            <li><b>Copy as PNG</b> - One-click clipboard copy (works in Slack, email, design tools)</li>
-            <li><b>Export to File</b> - Save rendered SVG as PNG file</li>
+            <li><b>Standalone SVG Files</b> - Right-click an <code>.svg</code> file in the Project view and choose <b>Open with SVG Toolkit</b></li>
+            <li><b>Editable Source and Live Preview</b> - Edit formatted SVG source and see the preview update; the original SVG file or data URI is not changed</li>
+            <li><b>Flexible Layout</b> - View the source and preview side by side, or switch to source-only or preview-only</li>
+            <li><b>Preview Controls</b> - Zoom, fit, 1:1 view, checkerboard and grid toggles</li>
+            <li><b>Copy and Export</b> - Copy the preview as PNG, export it to a PNG file, or copy the edited SVG as a complete Base64 data URI</li>
+            <li><b>Broad URI Support</b> - Decode standard and URL-safe Base64, URL-encoded, and plain SVG data URIs</li>
             <li><b>User Settings</b> - Configure MAX_INLINE_SIZE (default 200 KB)</li>
         </ul>
     ]]></description>
