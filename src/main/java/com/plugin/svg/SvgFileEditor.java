@@ -10,8 +10,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.ui.EditorTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +51,7 @@ public class SvgFileEditor implements FileEditor {
     private static final Pattern SVG_ICON_PATTERN = Pattern.compile("(?i)data:image/svg\\+xml(?:;charset=[^,;]+)?(?:;(base64))?,(.*)", Pattern.DOTALL);
     private final VirtualFile virtualFile;
     private final JPanel mainPanel;
-    private final EditorTextField svgTextArea;
+    private final SvgSourceEditorField svgTextArea;
     private final SvgPreviewPanel previewPanel;
     private final JLabel imageDetailsLabel;
     private final Timer previewUpdateTimer;
@@ -62,7 +64,7 @@ public class SvgFileEditor implements FileEditor {
         this.virtualFile = virtualFile;
 
         // Initialize components
-        this.svgTextArea = new EditorTextField(project, StdFileTypes.XML);
+        this.svgTextArea = new SvgSourceEditorField(project);
         this.svgTextArea.setOneLineMode(false);
         this.svgTextArea.setToolTipText("Edit the SVG markup; changes update this preview only.");
 
@@ -263,7 +265,8 @@ public class SvgFileEditor implements FileEditor {
         toolbar.add(createIconButton(AllIcons.General.FitContent, "Fit image to preview", previewPanel::fitToViewport));
         toolbar.add(new JSeparator(SwingConstants.VERTICAL));
 
-        JToggleButton checkerboardButton = createToggleButton(new PreviewOptionIcon(false), "Hide checkerboard background");
+        JToggleButton checkerboardButton = createToggleButton(
+                new PreviewOptionIcon(false), "Hide checkerboard background");
         checkerboardButton.setSelected(true);
         checkerboardButton.addActionListener(event -> {
             previewPanel.setCheckerboardVisible(checkerboardButton.isSelected());
@@ -291,6 +294,10 @@ public class SvgFileEditor implements FileEditor {
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setPreferredSize(new Dimension(24, 24));
         button.setRolloverEnabled(true);
+        button.setBorderPainted(true);
+        button.setContentAreaFilled(true);
+        button.setOpaque(true);
+        button.getModel().addChangeListener(event -> updateButtonFeedback(button));
         button.addActionListener(event -> action.run());
         return button;
     }
@@ -302,7 +309,24 @@ public class SvgFileEditor implements FileEditor {
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setPreferredSize(new Dimension(24, 24));
         button.setRolloverEnabled(true);
+        button.setBorderPainted(true);
+        button.setContentAreaFilled(true);
+        button.setOpaque(true);
+        button.getModel().addChangeListener(event -> updateButtonFeedback(button));
         return button;
+    }
+
+    private void updateButtonFeedback(AbstractButton button) {
+        ButtonModel model = button.getModel();
+        boolean selected = model.isSelected();
+        boolean active = selected || model.isPressed() || model.isRollover();
+        Color activeColor = UIManager.getColor(selected ? "ToggleButton.select" : "Button.select");
+        if (activeColor == null) {
+            activeColor = new Color(0xDCE8F5);
+        }
+        Color idleColor = UIManager.getColor("Button.background");
+        button.setBackground(active ? activeColor : idleColor);
+        button.setBorderPainted(active || model.isRollover());
     }
 
     private void bindZoomShortcuts(JComponent target) {
@@ -321,6 +345,24 @@ public class SvgFileEditor implements FileEditor {
                 action.run();
             }
         });
+    }
+
+    private static final class SvgSourceEditorField extends EditorTextField {
+        private SvgSourceEditorField(Project project) {
+            super(project, StdFileTypes.XML);
+        }
+
+        @Override
+        protected void onEditorAdded(Editor editor) {
+            super.onEditorAdded(editor);
+            if (editor instanceof EditorEx) {
+                EditorEx editorEx = (EditorEx) editor;
+                editorEx.setVerticalScrollbarVisible(true);
+                editorEx.setHorizontalScrollbarVisible(true);
+                editorEx.getSettings().setLineNumbersShown(true);
+                editorEx.getSettings().setUseSoftWraps(false);
+            }
+        }
     }
 
     // FileEditor implementations
@@ -383,7 +425,7 @@ public class SvgFileEditor implements FileEditor {
 
     @Override
     public JComponent getPreferredFocusedComponent() {
-        return svgTextArea;
+        return svgTextArea.getFocusTarget();
     }
 
     @Override
@@ -600,7 +642,8 @@ public class SvgFileEditor implements FileEditor {
         public void paintIcon(Component component, Graphics graphics, int x, int y) {
             Graphics2D g2d = (Graphics2D) graphics.create();
             try {
-                g2d.setColor(new Color(0x555555));
+                Color foreground = component.getForeground();
+                g2d.setColor(foreground == null ? Color.WHITE : foreground);
                 if (grid) {
                     g2d.drawRect(x + 2, y + 2, 11, 11);
                     g2d.drawLine(x + 6, y + 2, x + 6, y + 13);
