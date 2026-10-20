@@ -55,6 +55,10 @@ public class SvgDataUriUtil {
         return null;
     }
 
+    public static String encodeBase64(String svgText) {
+        return Base64.getEncoder().encodeToString(svgText.getBytes(StandardCharsets.UTF_8));
+    }
+
     private static String tryBase64Decoders(String s) {
         try {
             byte[] bytes = Base64.getDecoder().decode(fixPadding(s));

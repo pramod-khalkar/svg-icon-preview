@@ -18,6 +18,12 @@ public class SvgDataUriUtilTest {
     }
 
     @Test
+    public void testEncodeBase64() {
+        String encoded = SvgDataUriUtil.encodeBase64(SIMPLE_SVG);
+        assertEquals(SIMPLE_SVG, SvgDataUriUtil.decodePayload(encoded, true));
+    }
+
+    @Test
     public void testDecodeUrlSafeBase64() {
         String b64 = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(SIMPLE_SVG.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         String decoded = SvgDataUriUtil.decodePayload(b64, true);
@@ -132,4 +138,3 @@ public class SvgDataUriUtilTest {
         assertTrue("Decoded SVG should preserve '+' character", decoded.contains("M10+20"));
     }
 }
-

@@ -2,7 +2,7 @@
 
 A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as data URIs. Displays inline previews, provides powerful tools for inspection, export, and caching.
 
-**Version**: 1.1.0  
+**Version**: 1.1.2
 **Compatibility**: IntelliJ IDEA 2023.1+ (all editions)
 
 ## ✨ Features
@@ -11,6 +11,8 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 - 🖼️ **Smart SVG Detection** - Detects `data:image/svg+xml;base64,...` strings in code (handles line breaks, charset, optional encoding)
 - 👁️ **Gutter Icon Preview** - Shows 16×16px icon in editor margin
 - 📄 **Editor Tab Preview** - Click gutter icon to open SVG in editor tab with split view (source | preview)
+- ✏️ **Live SVG Editing** - Edit SVG markup in the preview tab and see debounced live renders; edits remain local to that tab
+- 🔎 **Preview Controls** - Zoom in/out, fit the image to the preview, view at 1:1, and toggle checkerboard/grid overlays
 
 ### Robust Decoding
 - ✅ **Multiple Format Support** - Standard base64, URL-safe base64, plain text SVG URIs
@@ -32,6 +34,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 ### Export Capabilities
 - 📥 **Copy as PNG** - One-click clipboard copy (paste anywhere: Slack, email, design tools)
 - 💾 **Export to File** - Save rendered SVG as PNG with file chooser
+- 🔤 **Copy Base64** - Copy the edited SVG as a Base64 payload to manually replace in the original data URI
 
 ### Configuration
 - ⚙️ **User Settings** - Configurable MAX_INLINE_SIZE (10 KB–10 MB, default 200 KB)
@@ -52,7 +55,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 4. Click **Install** and restart IDE
 
 ### From Disk
-1. Download `svg-icon-preview-1.1.0.zip` from releases
+1. Download `svg-icon-preview-1.1.2.zip` from releases
 2. Open IntelliJ IDEA: **Preferences** → **Plugins** → ⚙️ → **Install plugin from disk...**
 3. Select the ZIP file and restart
 
@@ -71,15 +74,17 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 2. **Hover over line** → See small icon in gutter
 
 3. **Click gutter icon** → SVG opens in editor tab with:
-   - Left pane: Formatted, decoded SVG source (non-editable)
-   - Right pane: SVG preview with zoom controls
-   - Toolbar above: Copy as PNG, Export PNG, image details (e.g., "400 × 400 px ~.5KB")
+   - Left pane: Pretty-formatted SVG source with XML syntax highlighting; edits update the preview only
+   - Right pane: SVG preview with zoom controls; edits refresh the preview after a short pause
+   - Compact right-side icon toolbar: copy/export actions, zoom in/out, actual size (1:1), fit-to-preview, checkerboard and grid toggles, plus image details; hover over icons for tooltips
 
 4. **Use toolbar:**
-   - **Zoom**: `-` / `+` buttons or `Ctrl+±`
-   - **Reset**: `Ctrl+0`
-   - **Copy as PNG**: Click "Copy as PNG" button
-   - **Export to file**: Click "Export PNG" button
+   - **Zoom**: Use the zoom icons, Ctrl+mouse wheel, or `Ctrl+±`
+   - **Actual size**: Use the 1:1 icon or `Ctrl+0`; preview opens at 1:1 by default
+   - **Fit to preview**: Use the fit icon to scale the whole image into the preview pane
+   - **Copy as PNG / Export PNG**: Use the corresponding preview toolbar icons
+   - **Copy Base64**: Copy the edited SVG payload, then manually replace the payload in the original data URI if desired
+   - **Background / grid**: Toggle the checkerboard or grid icons; disabling checkerboard uses the IDE theme background
 
 ## Configuration
 
@@ -117,7 +122,7 @@ cd svg-icon-preview
 ./gradlew clean build
 
 # Output
-# Plugin: build/libs/svg-icon-preview-1.1.0.jar
+# Plugin: build/distributions/svg-icon-preview-1.1.2.zip
 # Sandbox: build/idea-sandbox/IC-2023.1/plugins/svg-icon-preview/
 ```
 
@@ -202,7 +207,7 @@ Docs:
 ## Plugin Info
 
 - **Plugin ID**: `com.plugin.svg_icon_preview`
-- **Version**: 1.1.0
+- **Version**: 1.1.2
 - **Author**: Pramod Khalkar
 - **License**: See LICENSE file
 
