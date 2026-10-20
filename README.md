@@ -2,7 +2,7 @@
 
 A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as data URIs. Displays inline previews, provides powerful tools for inspection, export, and caching.
 
-**Version**: 1.1.2
+**Version**: 1.1.7
 **Compatibility**: IntelliJ IDEA 2023.1+ (all editions)
 
 ## ✨ Features
@@ -11,6 +11,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 - 🖼️ **Smart SVG Detection** - Detects `data:image/svg+xml;base64,...` strings in code (handles line breaks, charset, optional encoding)
 - 👁️ **Gutter Icon Preview** - Shows 16×16px icon in editor margin
 - 📄 **Editor Tab Preview** - Click gutter icon to open SVG in editor tab with split view (source | preview)
+- 🗂️ **Standalone SVG Preview** - Right-click an `.svg` file in the Project view and choose **Open with SVG Toolkit**
 - ✏️ **Live SVG Editing** - Edit SVG markup in the preview tab and see debounced live renders; edits remain local to that tab
 - 🔎 **Preview Controls** - Zoom in/out, fit the image to the preview, view at 1:1, and toggle checkerboard/grid overlays
 
@@ -55,7 +56,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 4. Click **Install** and restart IDE
 
 ### From Disk
-1. Download `svg-icon-preview-1.1.2.zip` from releases
+1. Download `svg-icon-preview-1.1.7.zip` from releases
 2. Open IntelliJ IDEA: **Preferences** → **Plugins** → ⚙️ → **Install plugin from disk...**
 3. Select the ZIP file and restart
 
@@ -72,6 +73,8 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
    ```
 
 2. **Hover over line** → See small icon in gutter
+
+   For a standalone SVG file, right-click it in the Project view and choose **Open with SVG Toolkit**.
 
 3. **Click gutter icon** → SVG opens in editor tab with:
    - Editable, pretty-formatted SVG source beside the preview; the source pane does not display the Base64 URI
@@ -123,7 +126,7 @@ cd svg-icon-preview
 ./gradlew clean build
 
 # Output
-# Plugin: build/distributions/svg-icon-preview-1.1.2.zip
+# Plugin: build/distributions/svg-icon-preview-1.1.7.zip
 # Sandbox: build/idea-sandbox/IC-2023.1/plugins/svg-icon-preview/
 ```
 
@@ -208,7 +211,7 @@ Docs:
 ## Plugin Info
 
 - **Plugin ID**: `com.plugin.svg_icon_preview`
-- **Version**: 1.1.2
+- **Version**: 1.1.7
 - **Author**: Pramod Khalkar
 - **License**: See LICENSE file
 

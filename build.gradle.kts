@@ -62,8 +62,11 @@ tasks {
 
         changeNotes.set(
             """
-            <h3>Version 1.1.2</h3>
+            <h3>Version 1.1.7</h3>
             <ul>
+                <li>Keep the SVG context action available when the Project popup omits selected-file data</li>
+                <li>Fix preview editor provider compatibility and SVG context-menu visibility</li>
+                <li>Open standalone SVG files in the SVG Toolkit from file context menus</li>
                 <li>SVG detection and rendering now works in ALL file types (Java, JSON, HTML, JavaScript, TypeScript, XML, etc.)</li>
                 <li>Editor tab interface with split view: Formatted SVG source | SVG preview</li>
                 <li>Enhanced SVG rendering reliability with improved DOCTYPE handling</li>

@@ -28,4 +28,12 @@
                            serviceImplementation="com.plugin.svg.SvgToolkitSettings"/>
         <fileEditorProvider implementation="com.plugin.svg.SvgFileEditorProvider"/>
     </extensions>
+    <actions>
+        <action id="com.plugin.svg.OpenSvgWithToolkit"
+                class="com.plugin.svg.OpenSvgWithToolkitAction"
+                text="Open with SVG Toolkit"
+                description="Open this SVG file in the SVG Toolkit preview editor">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>
