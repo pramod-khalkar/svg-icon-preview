@@ -24,6 +24,33 @@ public class SvgDataUriUtilTest {
     }
 
     @Test
+    public void testEncodeBase64DataUri() {
+        String dataUri = SvgDataUriUtil.encodeBase64DataUri(SIMPLE_SVG);
+        assertTrue(dataUri.startsWith("data:image/svg+xml;base64,"));
+        assertEquals(SIMPLE_SVG, SvgDataUriUtil.decodeSvgContent(dataUri));
+    }
+
+    @Test
+    public void testPreviewVirtualFileContainsFormattedSvgSource() throws Exception {
+        String dataUri = SvgDataUriUtil.encodeBase64DataUri(SIMPLE_SVG);
+        SvgVirtualFile virtualFile = new SvgVirtualFile("preview.svg-preview", SIMPLE_SVG, dataUri, null);
+
+        String editorContent = new String(virtualFile.contentsToByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(editorContent.contains("<svg"));
+        assertFalse(editorContent.startsWith("data:image/svg+xml"));
+        assertTrue(editorContent.contains("\n"));
+    }
+
+    @Test
+    public void testDecodeSvgDataUriAndPlainSvgContent() {
+        String encoded = SvgDataUriUtil.encodeBase64(SIMPLE_SVG);
+        assertEquals(SIMPLE_SVG,
+                SvgDataUriUtil.decodeSvgContent("data:image/svg+xml;base64," + encoded));
+        assertEquals(SIMPLE_SVG, SvgDataUriUtil.decodeSvgContent(SIMPLE_SVG));
+        assertEquals(SIMPLE_SVG, SvgDataUriUtil.decodeSvgContent(encoded));
+    }
+
+    @Test
     public void testSvgXmlFormatterPrettyPrintsMarkup() {
         String formatted = SvgXmlFormatter.format("<svg><rect/></svg>");
         assertTrue(formatted.contains(System.lineSeparator()) || formatted.contains("\n"));

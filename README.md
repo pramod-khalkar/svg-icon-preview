@@ -34,7 +34,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 ### Export Capabilities
 - 📥 **Copy as PNG** - One-click clipboard copy (paste anywhere: Slack, email, design tools)
 - 💾 **Export to File** - Save rendered SVG as PNG with file chooser
-- 🔤 **Copy Base64** - Copy the edited SVG as a Base64 payload to manually replace in the original data URI
+- 🔤 **Copy Base64** - Copy the SVG as a complete `data:image/svg+xml;base64,...` URI
 
 ### Configuration
 - ⚙️ **User Settings** - Configurable MAX_INLINE_SIZE (10 KB–10 MB, default 200 KB)
@@ -74,16 +74,17 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 2. **Hover over line** → See small icon in gutter
 
 3. **Click gutter icon** → SVG opens in editor tab with:
-   - Left pane: Pretty-formatted SVG source with XML syntax highlighting; edits update the preview only
-   - Right pane: SVG preview with zoom controls; edits refresh the preview after a short pause
-   - Compact right-side icon toolbar: copy/export actions, zoom in/out, actual size (1:1), fit-to-preview, checkerboard and grid toggles, plus image details; hover over icons for tooltips
+   - Editable, pretty-formatted SVG source beside the preview; the source pane does not display the Base64 URI
+   - Top-right layout icons switch between editor + preview, editor only, and preview only
+   - Drag the center divider to resize the source and preview panes
+   - Compact toolbar for copy/export, zoom in/out, actual size (1:1), fit-to-preview, checkerboard and grid toggles, and image details
 
 4. **Use toolbar:**
    - **Zoom**: Use the zoom icons, Ctrl+mouse wheel, or `Ctrl+±`
    - **Actual size**: Use the 1:1 icon or `Ctrl+0`; preview opens at 1:1 by default
    - **Fit to preview**: Use the fit icon to scale the whole image into the preview pane
    - **Copy as PNG / Export PNG**: Use the corresponding preview toolbar icons
-   - **Copy Base64**: Copy the edited SVG payload, then manually replace the payload in the original data URI if desired
+   - **Copy Base64**: Copy the complete SVG data URI for manual replacement if desired
    - **Background / grid**: Toggle the checkerboard or grid icons; disabling checkerboard uses the IDE theme background
 
 ## Configuration

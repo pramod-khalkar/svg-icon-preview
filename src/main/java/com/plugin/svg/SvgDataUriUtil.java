@@ -3,8 +3,12 @@ package com.plugin.svg;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SvgDataUriUtil {
+    private static final Pattern SVG_DATA_URI_PATTERN = Pattern.compile(
+            "(?i)data:image/svg\\+xml(?:;charset=[^,;]+)?(?:;(base64))?,(.*)", Pattern.DOTALL);
 
     /**
      * Normalize payload: trim, remove surrounding quotes if any
@@ -55,8 +59,43 @@ public class SvgDataUriUtil {
         return null;
     }
 
+    /**
+     * Decode an SVG data URI, or return plain SVG source unchanged.
+     * Returns null for a malformed SVG data URI.
+     */
+    public static String decodeSvgContent(String content) {
+        if (content == null) {
+            return null;
+        }
+
+        String trimmed = content.trim();
+        String candidate = trimmed;
+        if ((candidate.startsWith("\"") && candidate.endsWith("\""))
+                || (candidate.startsWith("'") && candidate.endsWith("'"))) {
+            candidate = candidate.substring(1, candidate.length() - 1).trim();
+        }
+        if (!candidate.regionMatches(true, 0, "data:image/svg+xml", 0, "data:image/svg+xml".length())) {
+            if (looksLikeSvg(candidate)) {
+                return content;
+            }
+            String decoded = decodePayload(candidate, true);
+            return looksLikeSvg(decoded) ? decoded : content;
+        }
+
+        Matcher matcher = SVG_DATA_URI_PATTERN.matcher(candidate);
+        if (!matcher.matches()) {
+            return null;
+        }
+        String payload = normalizePayload(matcher.group(2));
+        return decodePayload(payload, matcher.group(1) != null);
+    }
+
     public static String encodeBase64(String svgText) {
         return Base64.getEncoder().encodeToString(svgText.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static String encodeBase64DataUri(String svgText) {
+        return "data:image/svg+xml;base64," + encodeBase64(svgText);
     }
 
     private static String tryBase64Decoders(String s) {

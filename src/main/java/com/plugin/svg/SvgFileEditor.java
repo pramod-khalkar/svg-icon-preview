@@ -16,6 +16,8 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.ui.Splitter;
+import com.intellij.ui.OnePixelSplitter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,30 +33,33 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
- * File editor for SVG previews showing editable SVG source and visual preview side by side.
+ * File editor for viewing and exporting SVG previews.
  */
 public class SvgFileEditor implements FileEditor {
-    // Broad data URI pattern: capture optional base64 marker and payload (DOTALL to allow newlines)
-    private static final Pattern SVG_ICON_PATTERN = Pattern.compile("(?i)data:image/svg\\+xml(?:;charset=[^,;]+)?(?:;(base64))?,(.*)", Pattern.DOTALL);
     private final VirtualFile virtualFile;
     private final JPanel mainPanel;
+    private final JPanel contentPanel;
+    private final CardLayout contentLayout;
+    private final JPanel sourcePanel;
+    private final JPanel previewContainer;
+    private final JPanel editorOnlyPanel;
+    private final JPanel previewOnlyPanel;
+    private final OnePixelSplitter splitPane;
+    private double splitRatio = 0.5;
     private final EditorEx svgEditor;
     private final SvgPreviewPanel previewPanel;
     private final JLabel imageDetailsLabel;
     private final Timer previewUpdateTimer;
     private final AtomicLong renderGeneration = new AtomicLong();
     private BufferedImage currentImage;
+    private String svgText;
     private volatile boolean disposed;
     private static final Logger LOG = Logger.getInstance(SvgFileEditor.class);
 
     public SvgFileEditor(Project project, VirtualFile virtualFile) {
         this.virtualFile = virtualFile;
-
-        // Initialize components
         Document document = Objects.requireNonNull(
                 FileDocumentManager.getInstance().getDocument(virtualFile),
                 "Unable to create a document for the SVG preview file");
@@ -64,26 +69,22 @@ public class SvgFileEditor implements FileEditor {
             throw new IllegalStateException("IntelliJ did not create an extended SVG editor");
         }
         this.svgEditor = (EditorEx) editor;
-        this.svgEditor.setVerticalScrollbarVisible(true);
-        this.svgEditor.setHorizontalScrollbarVisible(true);
-        this.svgEditor.getSettings().setLineNumbersShown(true);
-        this.svgEditor.getSettings().setUseSoftWraps(false);
-
+        svgEditor.setVerticalScrollbarVisible(true);
+        svgEditor.setHorizontalScrollbarVisible(true);
+        svgEditor.getSettings().setLineNumbersShown(true);
+        svgEditor.getSettings().setUseSoftWraps(false);
         this.previewPanel = new SvgPreviewPanel();
         this.imageDetailsLabel = new JLabel();
         this.imageDetailsLabel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
         this.previewUpdateTimer = new Timer(300, event -> renderCurrentSvg());
         this.previewUpdateTimer.setRepeats(false);
-
-        // Main panel with toolbar on top and split pane below
         this.mainPanel = new JPanel(new BorderLayout(0, 0));
 
-        // Split pane for editable SVG source and preview
-        JPanel sourcePanel = new JPanel(new BorderLayout());
+        this.sourcePanel = new JPanel(new BorderLayout());
         sourcePanel.setBorder(BorderFactory.createTitledBorder("SVG Source (editable)"));
         sourcePanel.add(svgEditor.getComponent(), BorderLayout.CENTER);
         JScrollPane previewScrollPane = new JScrollPane(previewPanel);
-        JPanel previewContainer = new JPanel(new BorderLayout());
+        this.previewContainer = new JPanel(new BorderLayout());
         previewContainer.add(createPreviewToolbar(), BorderLayout.NORTH);
         previewContainer.add(previewScrollPane, BorderLayout.CENTER);
         previewPanel.setViewport(previewScrollPane.getViewport());
@@ -93,36 +94,37 @@ public class SvgFileEditor implements FileEditor {
                 previewPanel.updatePreferredSize();
             }
         });
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                sourcePanel,
-                previewContainer);
-        splitPane.setResizeWeight(0.5); // 50/50 split
-        splitPane.setOneTouchExpandable(true);
-        splitPane.addComponentListener(new ComponentAdapter() {
-            private boolean initialized;
-
-            @Override
-            public void componentResized(ComponentEvent event) {
-                if (!initialized && splitPane.getWidth() > 0) {
-                    initialized = true;
-                    splitPane.setDividerLocation(splitPane.getWidth() / 2);
-                    splitPane.removeComponentListener(this);
-                }
-            }
-        });
-        mainPanel.add(splitPane, BorderLayout.CENTER);
+        this.splitPane = new OnePixelSplitter(false, (float) splitRatio, 0.1f, 0.9f);
+        splitPane.setFirstComponent(sourcePanel);
+        splitPane.setSecondComponent(previewContainer);
+        splitPane.setDividerWidth(8);
+        splitPane.setResizeEnabled(true);
+        splitPane.setShowDividerControls(false);
+        splitPane.setShowDividerIcon(false);
+        splitPane.setHonorComponentsMinimumSize(false);
+        splitPane.addPropertyChangeListener(Splitter.PROP_PROPORTION,
+                event -> splitRatio = splitPane.getProportion());
+        this.editorOnlyPanel = new JPanel(new BorderLayout());
+        this.previewOnlyPanel = new JPanel(new BorderLayout());
+        this.contentLayout = new CardLayout();
+        this.contentPanel = new JPanel(contentLayout);
+        contentPanel.add(splitPane, "split");
+        contentPanel.add(editorOnlyPanel, "editor");
+        contentPanel.add(previewOnlyPanel, "preview");
+        mainPanel.add(createLayoutToolbar(), BorderLayout.NORTH);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
         bindZoomShortcuts(mainPanel);
 
-        // Load content from the virtual file
         loadContentFromVirtualFile();
-        this.svgEditor.getDocument().addDocumentListener(new DocumentListener() {
+        svgEditor.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void beforeDocumentChange(DocumentEvent event) {
             }
 
             @Override
             public void documentChanged(DocumentEvent event) {
-                schedulePreviewUpdate();
+                renderGeneration.incrementAndGet();
+                previewUpdateTimer.restart();
             }
         });
     }
@@ -134,31 +136,18 @@ public class SvgFileEditor implements FileEditor {
             String rawContent = new String(bytes, StandardCharsets.UTF_8);
 
             // Decode the SVG content
-            String svgText = virtualFile instanceof SvgVirtualFile
+            this.svgText = virtualFile instanceof SvgVirtualFile
                     ? ((SvgVirtualFile) virtualFile).getSvgText()
                     : null;
-            if (svgText == null && !rawContent.isEmpty()) {
+            if (this.svgText == null && !rawContent.isEmpty()) {
                 try {
-                    // Extract payload and marker from the data URI string
-                    Matcher m = SVG_ICON_PATTERN.matcher(rawContent);
-                    if (m.matches()) {
-                        String marker = m.group(1); // 'base64' if present
-                        String payload = m.group(2);
-                        if (payload != null) {
-                            payload = SvgDataUriUtil.normalizePayload(payload);
-                            try {
-                                svgText = SvgDataUriUtil.decodePayload(payload, marker != null);
-                            } catch (Exception e) {
-                                LOG.warn("[SVG Toolkit] Error decoding SVG: " + e.getMessage(), e);
-                            }
-                        }
-                    }
+                    this.svgText = SvgDataUriUtil.decodeSvgContent(rawContent);
                 } catch (Exception e) {
                     LOG.warn("[SVG Toolkit] Error decoding SVG: " + e.getMessage(), e);
                 }
             }
 
-            if (svgText != null) {
+            if (this.svgText != null) {
                 BufferedImage previewImage = virtualFile instanceof SvgVirtualFile
                         ? ((SvgVirtualFile) virtualFile).getPreviewImage()
                         : null;
@@ -166,7 +155,7 @@ public class SvgFileEditor implements FileEditor {
                 this.previewPanel.setImage(previewImage);
                 updateImageDetails(previewImage);
                 if (previewImage == null) {
-                    renderCurrentSvg();
+                    renderSvg(this.svgText);
                 }
             } else {
                 this.currentImage = null;
@@ -188,20 +177,32 @@ public class SvgFileEditor implements FileEditor {
         }
     }
 
-    private void schedulePreviewUpdate() {
-        renderGeneration.incrementAndGet();
-        previewUpdateTimer.restart();
-    }
-
-    private void renderCurrentSvg() {
-        String svgText = svgEditor.getDocument().getText();
+    private void renderSvg(String source) {
         long generation = renderGeneration.get();
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            BufferedImage image = SvgRenderer.render(svgText, 400, 400);
+            BufferedImage image = SvgRenderer.render(source, 400, 400);
             ApplicationManager.getApplication().invokeLater(() -> {
                 if (disposed || generation != renderGeneration.get()) {
                     return;
                 }
+                currentImage = image;
+                previewPanel.setImage(image);
+                updateImageDetails(image);
+            });
+        });
+    }
+
+    private void renderCurrentSvg() {
+        String source = svgEditor.getDocument().getText();
+        long generation = renderGeneration.incrementAndGet();
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            String decoded = SvgDataUriUtil.decodeSvgContent(source);
+            BufferedImage image = decoded == null ? null : SvgRenderer.render(decoded, 400, 400);
+            ApplicationManager.getApplication().invokeLater(() -> {
+                if (disposed || generation != renderGeneration.get()) {
+                    return;
+                }
+                svgText = decoded;
                 currentImage = image;
                 previewPanel.setImage(image);
                 updateImageDetails(image);
@@ -225,7 +226,7 @@ public class SvgFileEditor implements FileEditor {
 
         toolbar.add(createIconButton(AllIcons.Actions.Copy, "Copy as PNG", this::copyAsImageToClipboard));
         toolbar.add(createIconButton(AllIcons.Actions.MenuSaveall, "Export PNG", this::exportAsPng));
-        toolbar.add(createIconButton(AllIcons.Actions.Download, "Copy Base64 payload", this::copyBase64ToClipboard));
+        toolbar.add(createIconButton(AllIcons.Actions.Download, "Copy Base64 data URI", this::copyBase64ToClipboard));
         toolbar.add(new JSeparator(SwingConstants.VERTICAL));
         toolbar.add(createIconButton(AllIcons.General.ZoomOut, "Zoom out", previewPanel::zoomOut));
         toolbar.add(createIconButton(AllIcons.General.ZoomIn, "Zoom in", previewPanel::zoomIn));
@@ -253,6 +254,54 @@ public class SvgFileEditor implements FileEditor {
         toolbar.add(imageDetailsLabel);
 
         return toolbar;
+    }
+
+    private JComponent createLayoutToolbar() {
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+        JToggleButton splitButton = createToggleButton(
+                AllIcons.General.LayoutEditorPreview, "Show editor and preview");
+        JToggleButton editorButton = createToggleButton(
+                AllIcons.General.LayoutEditorOnly, "Show editor only");
+        JToggleButton previewButton = createToggleButton(
+                AllIcons.General.LayoutPreviewOnly, "Show preview only");
+        ButtonGroup group = new ButtonGroup();
+        group.add(splitButton);
+        group.add(editorButton);
+        group.add(previewButton);
+        splitButton.setSelected(true);
+        splitButton.addActionListener(event -> showLayout("split"));
+        editorButton.addActionListener(event -> showLayout("editor"));
+        previewButton.addActionListener(event -> showLayout("preview"));
+        buttons.add(splitButton);
+        buttons.add(editorButton);
+        buttons.add(previewButton);
+
+        JPanel toolbar = new JPanel(new BorderLayout());
+        toolbar.add(buttons, BorderLayout.EAST);
+        return toolbar;
+    }
+
+    private void showLayout(String layout) {
+        if ("split".equals(layout)) {
+            splitPane.setFirstComponent(null);
+            splitPane.setSecondComponent(null);
+            splitPane.setFirstComponent(sourcePanel);
+            splitPane.setSecondComponent(previewContainer);
+            contentLayout.show(contentPanel, "split");
+            splitPane.setProportion((float) Math.max(0.1, Math.min(0.9, splitRatio)));
+        } else {
+            splitPane.setFirstComponent(new JPanel());
+            splitPane.setSecondComponent(new JPanel());
+            if ("editor".equals(layout)) {
+                editorOnlyPanel.add(sourcePanel, BorderLayout.CENTER);
+                contentLayout.show(contentPanel, "editor");
+            } else {
+                previewOnlyPanel.add(previewContainer, BorderLayout.CENTER);
+                contentLayout.show(contentPanel, "preview");
+            }
+        }
+        contentPanel.revalidate();
+        contentPanel.repaint();
     }
 
     private JButton createIconButton(Icon icon, String tooltip, Runnable action) {
@@ -375,15 +424,12 @@ public class SvgFileEditor implements FileEditor {
 
     @Override
     public JComponent getPreferredFocusedComponent() {
-        return svgEditor.getContentComponent();
+        return previewPanel;
     }
 
     @Override
     public void dispose() {
         disposed = true;
-        previewUpdateTimer.stop();
-        renderGeneration.incrementAndGet();
-        EditorFactory.getInstance().releaseEditor(svgEditor);
     }
 
     @Override
@@ -420,19 +466,50 @@ public class SvgFileEditor implements FileEditor {
             setBackground(new Color(0xEEEEEE));
             setPreferredSize(new Dimension(300, 300));
 
-            // Add mouse wheel for zoom
             addMouseWheelListener(e -> {
                 if (e.isControlDown()) {
-                    int notches = e.getWheelRotation();
-                    if (notches < 0) {
+                    double rotation = e.getPreciseWheelRotation();
+                    if (rotation == 0.0) {
+                        rotation = e.getWheelRotation();
+                    }
+                    if (rotation < 0.0) {
                         zoomIn();
-                    } else if (notches > 0) {
+                    } else if (rotation > 0.0) {
                         zoomOut();
                     }
-                    e.consume();
+                } else {
+                    scrollByWheel(e);
                 }
+                e.consume();
             });
 
+        }
+
+        private void scrollByWheel(MouseWheelEvent event) {
+            if (viewport == null) {
+                return;
+            }
+
+            double rotation = event.getPreciseWheelRotation();
+            if (rotation == 0.0) {
+                rotation = event.getWheelRotation();
+            }
+            int delta = (int) Math.round(rotation * 36.0);
+            if (delta == 0 && rotation != 0.0) {
+                delta = rotation > 0.0 ? 1 : -1;
+            }
+
+            Point current = viewport.getViewPosition();
+            Dimension extent = viewport.getExtentSize();
+            Dimension viewSize = viewport.getViewSize();
+            if (event.isShiftDown()) {
+                current.x += delta;
+            } else {
+                current.y += delta;
+            }
+            current.x = Math.max(0, Math.min(current.x, Math.max(0, viewSize.width - extent.width)));
+            current.y = Math.max(0, Math.min(current.y, Math.max(0, viewSize.height - extent.height)));
+            viewport.setViewPosition(current);
         }
 
         void setViewport(JViewport viewport) {
@@ -647,10 +724,16 @@ public class SvgFileEditor implements FileEditor {
 
     private void copyBase64ToClipboard() {
         try {
-            String encodedSvg = SvgDataUriUtil.encodeBase64(svgEditor.getDocument().getText());
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(encodedSvg), null);
+            if (svgText == null) {
+                JOptionPane.showMessageDialog(mainPanel,
+                        "The SVG source could not be decoded.",
+                        "Invalid SVG", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String encodedDataUri = SvgDataUriUtil.encodeBase64DataUri(svgText);
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(encodedDataUri), null);
             JOptionPane.showMessageDialog(mainPanel,
-                    "Base64 SVG payload copied. Replace the payload in the original data URI manually.",
+                    "Base64 SVG data URI copied. Replace the original data URI manually.",
                     "Copied", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(mainPanel,

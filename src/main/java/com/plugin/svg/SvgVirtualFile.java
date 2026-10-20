@@ -26,7 +26,7 @@ public class SvgVirtualFile extends VirtualFile {
 
     private final String displayName;
     private final String svgText;      // decoded SVG markup
-    private final String rawBase64;    // original base64 payload shown in left pane
+    private final String rawBase64;    // original data URI kept for reference
     private final BufferedImage previewImage;
     private volatile String fileContent;
     private volatile long modificationStamp = System.currentTimeMillis();
