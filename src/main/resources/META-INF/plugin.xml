@@ -19,6 +19,7 @@
 
     <depends>com.intellij.modules.platform</depends>
     <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="SVG Toolkit" displayType="BALLOON"/>
         <codeInsight.lineMarkerProvider implementationClass="com.plugin.svg.SvgIconLineMarkerProvider" />
         <applicationConfigurable groupId="tools" displayName="SVG Toolkit"
                                  id="preferences.svgtoolkit"

@@ -11,6 +11,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -38,7 +40,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * File editor for viewing and exporting SVG previews.
  */
 public class SvgFileEditor implements FileEditor {
+    private static final String NOTIFICATION_GROUP_ID = "SVG Toolkit";
     private final VirtualFile virtualFile;
+    private final Project project;
     private final JPanel mainPanel;
     private final JPanel contentPanel;
     private final CardLayout contentLayout;
@@ -59,6 +63,7 @@ public class SvgFileEditor implements FileEditor {
     private static final Logger LOG = Logger.getInstance(SvgFileEditor.class);
 
     public SvgFileEditor(Project project, VirtualFile virtualFile) {
+        this.project = project;
         this.virtualFile = virtualFile;
         Document document = Objects.requireNonNull(
                 FileDocumentManager.getInstance().getDocument(virtualFile),
@@ -225,8 +230,8 @@ public class SvgFileEditor implements FileEditor {
         toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xCCCCCC)));
 
         toolbar.add(createIconButton(AllIcons.Actions.Copy, "Copy as PNG", this::copyAsImageToClipboard));
-        toolbar.add(createIconButton(AllIcons.Actions.MenuSaveall, "Export PNG", this::exportAsPng));
-        toolbar.add(createIconButton(AllIcons.Actions.Download, "Copy Base64 data URI", this::copyBase64ToClipboard));
+        toolbar.add(createIconButton(AllIcons.Actions.Download, "Export PNG", this::exportAsPng));
+        toolbar.add(createIconButton(AllIcons.Actions.Copy, "Copy Base64 data URI", this::copyBase64ToClipboard));
         toolbar.add(new JSeparator(SwingConstants.VERTICAL));
         toolbar.add(createIconButton(AllIcons.General.ZoomOut, "Zoom out", previewPanel::zoomOut));
         toolbar.add(createIconButton(AllIcons.General.ZoomIn, "Zoom in", previewPanel::zoomIn));
@@ -712,9 +717,7 @@ public class SvgFileEditor implements FileEditor {
                     Toolkit.getDefaultToolkit().getSystemClipboard();
             ImageSelection imageSelection = new ImageSelection(currentImage);
             clipboard.setContents(imageSelection, null);
-            JOptionPane.showMessageDialog(mainPanel,
-                    "SVG image copied to clipboard as PNG",
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
+            showCopyNotification("SVG image copied to clipboard as PNG.");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(mainPanel,
                     "Failed to copy: " + ex.getMessage(),
@@ -732,14 +735,19 @@ public class SvgFileEditor implements FileEditor {
             }
             String encodedDataUri = SvgDataUriUtil.encodeBase64DataUri(svgText);
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(encodedDataUri), null);
-            JOptionPane.showMessageDialog(mainPanel,
-                    "Base64 SVG data URI copied. Replace the original data URI manually.",
-                    "Copied", JOptionPane.INFORMATION_MESSAGE);
+            showCopyNotification("Base64 SVG data URI copied to clipboard.");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(mainPanel,
                     "Failed to copy Base64: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void showCopyNotification(String message) {
+        NotificationGroupManager.getInstance()
+                .getNotificationGroup(NOTIFICATION_GROUP_ID)
+                .createNotification(message, NotificationType.INFORMATION)
+                .notify(project);
     }
 
     private void exportAsPng() {

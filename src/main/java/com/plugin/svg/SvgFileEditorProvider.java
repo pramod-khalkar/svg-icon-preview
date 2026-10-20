@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * File editor provider for SVG previews.
- * Creates editor tabs that show Base64 source and SVG preview side by side.
+ * Creates the custom SVG source and preview editor without the default text editor tab.
  */
 public class SvgFileEditorProvider implements FileEditorProvider {
     @NotNull
@@ -33,6 +33,6 @@ public class SvgFileEditorProvider implements FileEditorProvider {
 
     @Override
     public @NotNull FileEditorPolicy getPolicy() {
-        return FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR;
+        return FileEditorPolicy.HIDE_DEFAULT_EDITOR;
     }
 }
