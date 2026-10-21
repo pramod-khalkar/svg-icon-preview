@@ -28,8 +28,7 @@ public class SvgFileEditorProvider implements FileEditorProvider, DumbAware {
 
     @Override
     public boolean accept(@NotNull Project project, @NotNull VirtualFile virtualFile) {
-        // This editor only accepts our special virtual files for SVG previews
-        return virtualFile.getName().startsWith("svg-preview-");
+        return virtualFile instanceof SvgVirtualFile;
     }
 
     @Override

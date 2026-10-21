@@ -25,6 +25,7 @@ import java.awt.image.BufferedImage;
 public class SvgVirtualFile extends VirtualFile {
 
     private final String displayName;
+    private final String editorTabName;
     private final String svgText;      // decoded SVG markup
     private final String rawBase64;    // original data URI kept for reference
     private final BufferedImage previewImage;
@@ -32,7 +33,13 @@ public class SvgVirtualFile extends VirtualFile {
     private volatile long modificationStamp = System.currentTimeMillis();
 
     public SvgVirtualFile(String displayName, String svgText, String rawBase64, BufferedImage previewImage) {
+        this(displayName, svgText, rawBase64, previewImage, null);
+    }
+
+    public SvgVirtualFile(String displayName, String svgText, String rawBase64, BufferedImage previewImage,
+                          @Nullable String editorTabName) {
         this.displayName = displayName;
+        this.editorTabName = editorTabName;
         this.svgText = svgText;
         this.rawBase64 = rawBase64;
         this.previewImage = previewImage;
@@ -42,8 +49,11 @@ public class SvgVirtualFile extends VirtualFile {
     public String getSvgText() { return svgText; }
     public String getRawBase64() { return rawBase64; }
     public BufferedImage getPreviewImage() { return previewImage; }
+    public @Nullable String getEditorTabName() { return editorTabName; }
 
-    @Override public @NotNull String getName() { return displayName; }
+    @Override public @NotNull String getName() {
+        return editorTabName == null ? displayName : editorTabName;
+    }
     @Override public @NotNull VirtualFileSystem getFileSystem() { return SvgVirtualFileSystem.INSTANCE; }
     @Override public @NotNull String getPath() { return "/" + displayName; }
     @Override public boolean isWritable() { return true; }

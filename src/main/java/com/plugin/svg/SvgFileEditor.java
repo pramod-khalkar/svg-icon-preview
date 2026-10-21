@@ -229,9 +229,22 @@ public class SvgFileEditor implements FileEditor {
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
         toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xCCCCCC)));
 
-        toolbar.add(createIconButton(AllIcons.Actions.Copy, "Copy as PNG", this::copyAsImageToClipboard));
+        toolbar.add(createIconButton(createCopyOverlayIcon(graphics -> {
+                    graphics.drawRoundRect(1, 2, 12, 11, 2, 2);
+                    graphics.drawOval(8, 4, 2, 2);
+                    graphics.drawLine(2, 11, 5, 7);
+                    graphics.drawLine(5, 7, 7, 9);
+                    graphics.drawLine(7, 9, 9, 7);
+                    graphics.drawLine(9, 7, 12, 11);
+                }),
+                "Copy as PNG", this::copyAsImageToClipboard));
         toolbar.add(createIconButton(AllIcons.Actions.Download, "Export PNG", this::exportAsPng));
-        toolbar.add(createIconButton(AllIcons.Actions.Copy, "Copy Base64 data URI", this::copyBase64ToClipboard));
+        toolbar.add(createIconButton(createCopyOverlayIcon(graphics -> {
+                    graphics.drawRoundRect(1, 6, 9, 5, 3, 3);
+                    graphics.drawRoundRect(6, 4, 9, 5, 3, 3);
+                    graphics.drawLine(5, 8, 10, 7);
+                }),
+                "Copy Base64 data URI", this::copyBase64ToClipboard));
         toolbar.add(new JSeparator(SwingConstants.VERTICAL));
         toolbar.add(createIconButton(AllIcons.General.ZoomOut, "Zoom out", previewPanel::zoomOut));
         toolbar.add(createIconButton(AllIcons.General.ZoomIn, "Zoom in", previewPanel::zoomIn));
@@ -259,6 +272,49 @@ public class SvgFileEditor implements FileEditor {
         toolbar.add(imageDetailsLabel);
 
         return toolbar;
+    }
+
+    private Icon createCopyOverlayIcon(IconArtwork artwork) {
+        Icon copyIcon = AllIcons.Actions.Copy;
+        return new Icon() {
+            @Override
+            public void paintIcon(Component component, Graphics graphics, int x, int y) {
+                Graphics2D iconGraphics = (Graphics2D) graphics.create();
+                iconGraphics.translate(x, y);
+                Color foreground = UIManager.getColor("Label.foreground");
+                iconGraphics.setColor(foreground != null ? foreground : new Color(0x6E6E6E));
+                iconGraphics.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                artwork.paint(iconGraphics);
+
+                Color background = UIManager.getColor("Panel.background");
+                if (background == null) {
+                    background = UIManager.getColor("Button.background");
+                }
+                iconGraphics.setColor(background != null ? background : new Color(0xF0F0F0));
+                iconGraphics.fillRoundRect(7, 7, 9, 9, 2, 2);
+                iconGraphics.setColor(foreground != null ? foreground : new Color(0x6E6E6E));
+                iconGraphics.drawRoundRect(7, 7, 8, 8, 2, 2);
+                iconGraphics.translate(7, 7);
+                iconGraphics.scale(0.5, 0.5);
+                copyIcon.paintIcon(component, iconGraphics, 0, 0);
+                iconGraphics.dispose();
+            }
+
+            @Override
+            public int getIconWidth() {
+                return 16;
+            }
+
+            @Override
+            public int getIconHeight() {
+                return 16;
+            }
+        };
+    }
+
+    @FunctionalInterface
+    private interface IconArtwork {
+        void paint(Graphics2D graphics);
     }
 
     private JComponent createLayoutToolbar() {
@@ -373,6 +429,12 @@ public class SvgFileEditor implements FileEditor {
     @NotNull
     @Override
     public String getName() {
+        if (virtualFile instanceof SvgVirtualFile) {
+            String editorTabName = ((SvgVirtualFile) virtualFile).getEditorTabName();
+            if (editorTabName != null && !editorTabName.isEmpty()) {
+                return editorTabName;
+            }
+        }
         String name = virtualFile.getName();
         // Remove the .svg-preview suffix for a cleaner tab title
         if (name.endsWith(".svg-preview")) {

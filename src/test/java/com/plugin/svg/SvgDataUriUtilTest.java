@@ -42,6 +42,15 @@ public class SvgDataUriUtilTest {
     }
 
     @Test
+    public void testPreviewVirtualFileCanUseOriginalFileNameForEditorTab() {
+        SvgVirtualFile previewFile = new SvgVirtualFile(
+                "svg-preview-test.svg-123", SIMPLE_SVG, SIMPLE_SVG, null, "test.svg");
+
+        assertEquals("test.svg", previewFile.getName());
+        assertEquals("test.svg", previewFile.getEditorTabName());
+    }
+
+    @Test
     public void testDecodeSvgDataUriAndPlainSvgContent() {
         String encoded = SvgDataUriUtil.encodeBase64(SIMPLE_SVG);
         assertEquals(SIMPLE_SVG,
