@@ -67,6 +67,36 @@ public class SvgDataUriUtilTest {
     }
 
     @Test
+    public void testImageDetailsUseSvgIntrinsicSizeAndBytesBelowOneKilobyte() {
+        BufferedImage renderedImage = new BufferedImage(300, 300, BufferedImage.TYPE_INT_ARGB);
+        String svgSource = "<svg width=\"24\" height=\"24\">é</svg>";
+
+        assertEquals("24 × 24 px · SVG " + svgSource.getBytes(java.nio.charset.StandardCharsets.UTF_8).length + " B",
+                SvgFileEditor.formatImageDetails(renderedImage, svgSource));
+    }
+
+    @Test
+    public void testImageDetailsUseViewBoxWhenExplicitDimensionsAreMissing() {
+        BufferedImage renderedImage = new BufferedImage(400, 400, BufferedImage.TYPE_INT_ARGB);
+        String svgSource = "<svg viewBox=\"0 0 24 16\"></svg>";
+
+        assertTrue(SvgFileEditor.formatImageDetails(renderedImage, svgSource)
+                .startsWith("24 × 16 px · SVG "));
+    }
+
+    @Test
+    public void testSvgSizeSwitchesToKilobytesAt1024Bytes() {
+        BufferedImage renderedImage = new BufferedImage(24, 24, BufferedImage.TYPE_INT_ARGB);
+        String svgStart = "<svg width=\"24\" height=\"24\">";
+        String svgEnd = "</svg>";
+        String svgSource = svgStart + "a".repeat(1024 - svgStart.length() - svgEnd.length()) + svgEnd;
+        assertEquals(1024, svgSource.getBytes(java.nio.charset.StandardCharsets.UTF_8).length);
+
+        assertTrue(SvgFileEditor.formatImageDetails(renderedImage, svgSource)
+                .endsWith("SVG 1.00 KB"));
+    }
+
+    @Test
     public void testDecodeUrlSafeBase64() {
         String b64 = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(SIMPLE_SVG.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         String decoded = SvgDataUriUtil.decodePayload(b64, true);
