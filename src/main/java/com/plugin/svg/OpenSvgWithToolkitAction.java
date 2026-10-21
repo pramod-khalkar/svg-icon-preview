@@ -1,8 +1,14 @@
 package com.plugin.svg;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.ProjectViewNode;
+import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -30,13 +36,14 @@ public class OpenSvgWithToolkitAction extends DumbAwareAction {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.EDT;
+    }
+
+    @Override
     public void update(@NotNull AnActionEvent event) {
         VirtualFile file = getSelectedSvgFile(event);
-        boolean hasFileSelection = event.getData(CommonDataKeys.VIRTUAL_FILE) != null
-                || hasVirtualFileSelection(event)
-                || event.getData(CommonDataKeys.PSI_FILE) != null
-                || event.getData(CommonDataKeys.PSI_ELEMENT) != null;
-        event.getPresentation().setEnabledAndVisible(file != null || !hasFileSelection);
+        event.getPresentation().setEnabledAndVisible(file != null);
     }
 
     @Override
@@ -55,45 +62,115 @@ public class OpenSvgWithToolkitAction extends DumbAwareAction {
         ApplicationManager.getApplication().executeOnPooledThread(() -> openPreview(project, file));
     }
 
-    private boolean hasVirtualFileSelection(AnActionEvent event) {
-        VirtualFile[] selectedFiles = event.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY);
-        return selectedFiles != null && selectedFiles.length > 0;
-    }
-
     static boolean isSvgFileName(String fileName) {
         return fileName.toLowerCase(java.util.Locale.ROOT).endsWith(".svg");
     }
 
     private VirtualFile getSelectedSvgFile(AnActionEvent event) {
-        VirtualFile[] selectedFiles = event.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY);
-        if (selectedFiles != null) {
-            for (VirtualFile file : selectedFiles) {
-                if (file != null && !file.isDirectory() && isSvgFileName(file.getName())) {
+        VirtualFile file = findSvgFile(event.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY));
+        if (file == null) {
+            file = selectedSvgFromItem(event.getData(CommonDataKeys.VIRTUAL_FILE));
+        }
+        if (file != null) {
+            return file;
+        }
+
+        PsiElement[] psiElements = event.getData(PlatformCoreDataKeys.PSI_ELEMENT_ARRAY);
+        if (psiElements != null) {
+            for (PsiElement element : psiElements) {
+                file = selectedSvgFromItem(element);
+                if (file != null) {
                     return file;
                 }
             }
         }
 
-        VirtualFile selectedFile = event.getData(CommonDataKeys.VIRTUAL_FILE);
-        if (selectedFile != null && !selectedFile.isDirectory() && isSvgFileName(selectedFile.getName())) {
-            return selectedFile;
-        }
-
-        PsiFile psiFile = event.getData(CommonDataKeys.PSI_FILE);
-        if (psiFile != null && psiFile.getVirtualFile() != null
-                && isSvgFileName(psiFile.getVirtualFile().getName())) {
-            return psiFile.getVirtualFile();
-        }
-
-        PsiElement psiElement = event.getData(CommonDataKeys.PSI_ELEMENT);
-        if (psiElement != null) {
-            PsiFile containingFile = psiElement.getContainingFile();
-            VirtualFile containingVirtualFile = containingFile == null ? null : containingFile.getVirtualFile();
-            if (containingVirtualFile != null && isSvgFileName(containingVirtualFile.getName())) {
-                return containingVirtualFile;
+        Object[] selectedItems = event.getData(PlatformCoreDataKeys.SELECTED_ITEMS);
+        if (selectedItems != null) {
+            for (Object item : selectedItems) {
+                file = selectedSvgFromItem(item);
+                if (file != null) {
+                    return file;
+                }
             }
         }
 
+        file = selectedSvgFromItem(event.getData(PlatformCoreDataKeys.SELECTED_ITEM));
+        if (file != null) {
+            return file;
+        }
+
+        PsiFile psiFile = event.getData(CommonDataKeys.PSI_FILE);
+        if (psiFile != null) {
+            file = selectedSvgFromItem(psiFile);
+            if (file != null) {
+                return file;
+            }
+        }
+
+        file = selectedSvgFromItem(event.getData(CommonDataKeys.PSI_ELEMENT));
+        if (file != null) {
+            return file;
+        }
+
+        return getProjectViewSelectedSvgFile(event.getProject());
+    }
+
+    static VirtualFile findSvgFile(VirtualFile[] files) {
+        if (files != null) {
+            for (VirtualFile file : files) {
+                if (isSvgFile(file)) {
+                    return file;
+                }
+            }
+        }
+        return null;
+    }
+
+    static VirtualFile selectedSvgFromItem(Object item) {
+        if (item instanceof VirtualFile file) {
+            return isSvgFile(file) ? file : null;
+        }
+        if (item instanceof ProjectViewNode<?> node) {
+            VirtualFile file = node.getVirtualFile();
+            if (isSvgFile(file)) {
+                return file;
+            }
+            return selectedSvgFromItem(node.getValue());
+        }
+        if (item instanceof AbstractTreeNode<?> node) {
+            return selectedSvgFromItem(node.getValue());
+        }
+        if (item instanceof PsiElement element) {
+            return ReadAction.compute(() -> {
+                PsiFile psiFile = element instanceof PsiFile
+                        ? (PsiFile) element
+                        : element.getContainingFile();
+                VirtualFile file = psiFile == null ? null : psiFile.getVirtualFile();
+                return isSvgFile(file) ? file : null;
+            });
+        }
+        return null;
+    }
+
+    private static boolean isSvgFile(VirtualFile file) {
+        return file != null && !file.isDirectory() && isSvgFileName(file.getName());
+    }
+
+    private static VirtualFile getProjectViewSelectedSvgFile(Project project) {
+        if (project == null || project.isDisposed()) {
+            return null;
+        }
+        var pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
+        if (pane == null) {
+            return null;
+        }
+        for (Object selectedItem : pane.getSelectedUserObjects()) {
+            VirtualFile file = selectedSvgFromItem(selectedItem);
+            if (file != null) {
+                return file;
+            }
+        }
         return null;
     }
 
