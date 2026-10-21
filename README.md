@@ -2,8 +2,13 @@
 
 A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as data URIs. Displays inline previews, provides powerful tools for inspection, export, and caching.
 
-**Version**: 1.1.3
+**Version**: 1.1.4
 **Compatibility**: IntelliJ IDEA 2023.1+ (all editions)
+
+### Version 1.1.4
+- Updated Project View selection handling for the SVG Toolkit context-menu action.
+- Fixed an intermittent editor-state error when opening or selecting preview tabs.
+- Corrected SVG dimensions and source-size units shown in the preview.
 
 ## ✨ Features
 
@@ -56,7 +61,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 4. Click **Install** and restart IDE
 
 ### From Disk
-1. Download `svg-icon-preview-1.1.3.zip` from releases
+1. Download `svg-icon-preview-1.1.4.zip` from releases
 2. Open IntelliJ IDEA: **Preferences** → **Plugins** → ⚙️ → **Install plugin from disk...**
 3. Select the ZIP file and restart
 
@@ -126,7 +131,7 @@ cd svg-icon-preview
 ./gradlew clean build
 
 # Output
-# Plugin: build/distributions/svg-icon-preview-1.1.3.zip
+# Plugin: build/distributions/svg-icon-preview-1.1.4.zip
 # Sandbox: build/idea-sandbox/IC-2023.1/plugins/svg-icon-preview/
 ```
 
@@ -210,8 +215,8 @@ Docs:
 
 ## Plugin Info
 
-- **Plugin ID**: `com.plugin.svg_icon_preview`
-- **Version**: 1.1.3
+- **Plugin ID**: `com.plugin.svg-icon-preview`
+- **Version**: 1.1.4
 - **Author**: Pramod Khalkar
 - **License**: See LICENSE file
 

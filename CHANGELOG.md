@@ -2,6 +2,22 @@
 
 All notable changes to SVG Toolkit will be documented in this file.
 
+### [1.1.4] - 2026-10-22
+
+#### Fixed
+- Updated Project View selection handling for the SVG Toolkit context-menu action.
+- Fixed an intermittent editor-state error when opening or selecting preview tabs.
+- Corrected the SVG dimensions and decoded source-size units shown in the preview.
+
+### [1.1.3]
+
+#### Added
+- Open standalone SVG files from the Project view with the SVG Toolkit context-menu action.
+- Edit formatted SVG source with a live preview; changes stay in the preview and do not rewrite the original file or encoded URI.
+- Switch between side-by-side source and preview, source-only, and preview-only layouts.
+- Copy the edited SVG as a complete Base64 data URI for manual replacement.
+- Copy the preview as PNG or export it to a PNG file.
+
 ### [1.1.2] - 2026-07-10
 
 **Feature: Support for All File Types**

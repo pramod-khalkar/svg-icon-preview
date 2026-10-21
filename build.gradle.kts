@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.plugin.svg"
-version = "1.1.3"
+version = "1.1.4"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -62,17 +62,11 @@ tasks {
 
         changeNotes.set(
             """
-            <h3>Version 1.1.3</h3>
+            <h3>Version 1.1.4</h3>
             <ul>
-                <li>Open standalone SVG files from the Project view using the SVG Toolkit context-menu action</li>
-                <li>Edit formatted SVG source and see a live preview without modifying the original file or data URI</li>
-                <li>Switch between source-and-preview, source-only, and preview-only layouts</li>
-                <li>Copy the edited SVG as a complete Base64 data URI and copy or export the preview as PNG</li>
-                <li>SVG detection and rendering now works in ALL file types (Java, JSON, HTML, JavaScript, TypeScript, XML, etc.)</li>
-                <li>Improved editor provider compatibility and SVG context-menu visibility</li>
-                <li>User-configurable MAX_INLINE_SIZE setting (10 KB–10 MB, default 200 KB)</li>
-                <li>LRU image cache for ~50x faster duplicate loading</li>
-                <li>Zoom controls (10%-400%) with keyboard shortcuts (Ctrl+±, Ctrl+0)</li>
+                <li>Updated Project View selection handling for the SVG Toolkit context-menu action</li>
+                <li>Fixed an intermittent editor-state error when opening or selecting preview tabs</li>
+                <li>Corrected displayed SVG dimensions and source-size units in the preview</li>
             </ul>
             """.trimIndent()
         )

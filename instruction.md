@@ -23,6 +23,7 @@ This repository contains an IntelliJ Platform plugin named **SVG Toolkit**. It d
 - `SvgDynamicIcon` displays a placeholder and can update the gutter icon after background rendering.
 - `SvgVirtualFile` and `SvgVirtualFileSystem` represent an in-memory preview file.
 - `SvgFileEditorProvider` accepts the synthetic `svg-preview-` files and creates `SvgFileEditor`. `SvgFileEditor` displays source and preview panes and provides PNG copy/export actions.
+- `OpenSvgWithToolkitAction` adds the Project View context-menu action for selected `.svg` files. Keep its update logic limited to actual SVG selections, use the EDT for Project View selection access, and use read actions when resolving PSI.
 - `SvgToolkitSettings`, `SvgToolkitSettingsConfigurable`, and `SvgToolkitSettingsPanel` implement the configurable inline-size threshold.
 - `SvgPreviewEditorTab`, `SvgPreviewDialog`, and `SvgPreviewToolWindow` are additional/older UI implementations. Trace registrations and call sites before changing or removing them; the registered editor-provider flow currently creates `SvgFileEditor`.
 
@@ -38,9 +39,19 @@ Run commands from the repository root using the Gradle wrapper:
 
 Use `./gradlew test` for changes to logic covered by unit tests; use `./gradlew build` when validating plugin packaging or configuration. `runIde` launches a sandbox IDE and is not needed for ordinary unit-test changes.
 
+## Release workflow
+
+For every release, keep release information synchronized across all user-facing and build metadata:
+
+- Update `CHANGELOG.md` with the released version and its notable changes.
+- Update the version references and release notes in `README.md`.
+- Update the plugin version and change notes in `build.gradle.kts`.
+- Review `src/main/resources/META-INF/plugin.xml` for every release and update its description to reflect any changed or added user-facing features; keep it accurate if no description change is needed.
+
 ## Change guidance
 
 - Preserve IntelliJ Platform threading rules: PSI/document access belongs in read actions; Swing UI updates belong on the event dispatch thread; expensive SVG decoding/rendering should not block the UI.
+- `FileEditor.getState()` must return a non-null `FileEditorState`; IntelliJ may request it during tab selection and document-history updates.
 - Keep SVG parsing, decoding, rendering, caching, and UI responsibilities in their existing classes unless a change clearly warrants a small shared abstraction.
 - Preserve behavior for non-Java text files and for supported URI encodings. Add focused tests for decoder or detection changes, including malformed and boundary inputs where relevant.
 - Keep cache behavior bounded and avoid retaining project/PSI objects in long-lived static state.
@@ -48,4 +59,3 @@ Use `./gradlew test` for changes to logic covered by unit tests; use `./gradlew 
 - Do not assume README feature descriptions, file names, roadmap entries, or changelog entries exactly match current code. Verify behavior from active registrations and call sites.
 - Make focused changes; do not modify generated Gradle output, `.gradle/`, `build/`, or IDE sandbox files as source.
 - When user-facing behavior or configuration changes, update the directly related documentation and tests.
-
