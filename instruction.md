@@ -2,7 +2,7 @@
 
 ## Project overview
 
-This repository contains an IntelliJ Platform plugin named **SVG Toolkit**. It detects SVG data URIs in text-based files, adds gutter previews, and lets users open a rendered preview in a synthetic editor tab. The implementation is Java, built with Gradle Kotlin DSL.
+This repository contains an IntelliJ Platform plugin named **SVG Toolkit**. It detects SVG data URIs in text-based files, adds gutter previews, provides an editor with live SVG source/preview and save/export actions, and includes a tool window for searching standalone project SVG files. The implementation is Java, built with Gradle Kotlin DSL.
 
 ## Project facts
 
@@ -22,7 +22,9 @@ This repository contains an IntelliJ Platform plugin named **SVG Toolkit**. It d
 - `SvgImageCache` is the bounded LRU cache used for rendered gutter images.
 - `SvgDynamicIcon` displays a placeholder and can update the gutter icon after background rendering.
 - `SvgVirtualFile` and `SvgVirtualFileSystem` represent an in-memory preview file.
-- `SvgFileEditorProvider` accepts the synthetic `svg-preview-` files and creates `SvgFileEditor`. `SvgFileEditor` displays source and preview panes and provides PNG copy/export actions.
+- `SvgFileEditorProvider` accepts the synthetic `svg-preview-` files and creates `SvgFileEditor`. `SvgFileEditor` displays source and preview panes and groups save/export/copy actions in the preview toolbar's File menu.
+- `SvgVirtualFile` carries the original standalone source file and its original content for Save and external-change confirmation. Data-URI previews do not have a source file and only offer Save As/export/copy actions.
+- `SvgProjectBrowserToolWindowFactory` registers the **SVG Toolkit** tool window. `SvgProjectBrowserPanel` searches standalone `.svg` files in project content, filters names/paths, shows thumbnails, dimensions, size, and project-relative paths, and opens selected files through `OpenSvgWithToolkitAction.openPreview`.
 - `OpenSvgWithToolkitAction` adds the Project View context-menu action for selected `.svg` files. Keep its update logic limited to actual SVG selections, use the EDT for Project View selection access, and use read actions when resolving PSI.
 - `SvgToolkitSettings`, `SvgToolkitSettingsConfigurable`, and `SvgToolkitSettingsPanel` implement the configurable inline-size threshold.
 - `SvgPreviewEditorTab`, `SvgPreviewDialog`, and `SvgPreviewToolWindow` are additional/older UI implementations. Trace registrations and call sites before changing or removing them; the registered editor-provider flow currently creates `SvgFileEditor`.
@@ -55,6 +57,7 @@ For every release, keep release information synchronized across all user-facing 
 - Keep SVG parsing, decoding, rendering, caching, and UI responsibilities in their existing classes unless a change clearly warrants a small shared abstraction.
 - Preserve behavior for non-Java text files and for supported URI encodings. Add focused tests for decoder or detection changes, including malformed and boundary inputs where relevant.
 - Keep cache behavior bounded and avoid retaining project/PSI objects in long-lived static state.
+- Distinguish released functionality from current working-tree features in user-facing documentation. Update `CHANGELOG.md` only when preparing an actual release; do not describe unreleased work as part of the current published version.
 - Follow nearby Java style and existing IntelliJ Platform APIs. Update `plugin.xml` when adding/removing platform extensions or services.
 - Do not assume README feature descriptions, file names, roadmap entries, or changelog entries exactly match current code. Verify behavior from active registrations and call sites.
 - Make focused changes; do not modify generated Gradle output, `.gradle/`, `build/`, or IDE sandbox files as source.

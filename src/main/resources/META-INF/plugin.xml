@@ -4,21 +4,21 @@
     <name>SVG Toolkit</name>
     <vendor>Pramod Khalkar</vendor>
     <description><![CDATA[
-        <p><b>SVG Toolkit</b> - Inspect, edit, preview, and export SVG graphics in IntelliJ IDEA.</p>
+        <p><b>SVG Toolkit</b> - Find, inspect, edit, preview, and export SVG graphics in IntelliJ IDEA.</p>
 
         <h3>Core Features</h3>
         <ul>
-            <li><b>Smart SVG Detection</b> - Finds <code>data:image/svg+xml;base64,...</code> strings in code (handles line breaks, charset, multiple encodings)</li>
-            <li><b>Gutter Icon Preview</b> - Shows 16×16px preview icon in editor margin</li>
-            <li><b>Standalone SVG Files</b> - Right-click an <code>.svg</code> file in the Project view and choose <b>Open with SVG Toolkit</b></li>
-            <li><b>Project SVG Browser</b> - Search project SVG files, view thumbnails and file sizes, and open an asset in the SVG Toolkit editor</li>
-            <li><b>Editable Source and Live Preview</b> - Edit formatted SVG source and see the preview update without changing the original until you choose Save</li>
-            <li><b>Flexible Layout</b> - View the source and preview side by side, or switch to source-only or preview-only</li>
-            <li><b>Preview Controls</b> - Zoom, fit, 1:1 view, checkerboard and grid toggles</li>
-            <li><b>File Menu</b> - Save edits to an opened standalone SVG, save as SVG or PNG, or copy the preview as PNG or the SVG as a complete Base64 data URI</li>
-            <li><b>Broad URI Support</b> - Decode standard and URL-safe Base64, URL-encoded, and plain SVG data URIs</li>
-            <li><b>User Settings</b> - Configure MAX_INLINE_SIZE (default 200 KB)</li>
+            <li><b>Embedded SVG Detection</b> - Finds <code>data:image/svg+xml</code> URIs in text-based files and displays gutter previews</li>
+            <li><b>Multiple URI Encodings</b> - Decodes standard and URL-safe Base64, URL-encoded, and plain SVG data URIs, including missing Base64 padding</li>
+            <li><b>Project SVG Browser</b> - Search standalone <code>.svg</code> files by name or folder; browse thumbnails, file sizes, dimensions, and project-relative paths</li>
+            <li><b>Open Existing SVGs</b> - Open a standalone SVG from the Project View context menu or the project browser</li>
+            <li><b>Source Editor and Live Preview</b> - Edit formatted SVG source and see a debounced preview without automatically modifying the original</li>
+            <li><b>Save and Export</b> - Save changes to an opened standalone SVG, save a new SVG or PNG, or copy the preview as PNG or the SVG as a Base64 data URI</li>
+            <li><b>Preview Layout and Controls</b> - Use split, source-only, or preview-only layouts; zoom, fit, view at 1:1, and toggle checkerboard or grid overlays</li>
+            <li><b>Background Rendering and Caching</b> - Render off the UI thread and cache gutter images to keep editing responsive</li>
+            <li><b>Configurable Inline Size</b> - Set the size threshold for inline SVG previews (default 200 KB)</li>
         </ul>
+        <p>The project browser searches standalone SVG files; it does not index embedded data URIs.</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>

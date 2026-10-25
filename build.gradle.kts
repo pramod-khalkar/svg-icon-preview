@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.plugin.svg"
-version = "1.1.4"
+version = "1.2.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -62,11 +62,12 @@ tasks {
 
         changeNotes.set(
             """
-            <h3>Version 1.1.4</h3>
+            <h3>Version 1.2.0</h3>
             <ul>
-                <li>Updated Project View selection handling for the SVG Toolkit context-menu action</li>
-                <li>Fixed an intermittent editor-state error when opening or selecting preview tabs</li>
-                <li>Corrected displayed SVG dimensions and source-size units in the preview</li>
+                <li>Added a project SVG browser with search, thumbnails, dimensions, file sizes, and project-relative paths</li>
+                <li>Added Save, Save As SVG, Save As PNG, Copy as PNG, and Copy as Base64 data URI actions in the preview File menu</li>
+                <li>Added saving edited standalone SVGs with confirmation when the original file changed</li>
+                <li>Added IntelliJ-style light and dark icons for the Project View action and SVG Toolkit tool window</li>
             </ul>
             """.trimIndent()
         )

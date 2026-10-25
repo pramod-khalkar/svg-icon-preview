@@ -1,9 +1,7 @@
 # SVG Toolkit Roadmap
 
-This roadmap reflects the shipped features documented in `CHANGELOG.md` through
-version 1.1.4, plus the next planned feature implemented in the current
-work-in-progress. Future versions are tentative priorities, not release
-commitments; adjust them based on user feedback.
+This roadmap separates released work (through 1.2.0) from ideas for future
+releases. Future versions and scopes are provisional until a release is planned.
 
 ## Completed
 
@@ -29,33 +27,36 @@ commitments; adjust them based on user feedback.
 - Improve Project View selection handling and editor-state reliability.
 - Correct displayed SVG dimensions and decoded source-size units.
 
-## Implemented, pending release
-
-### 1.2.0 — Save edited SVGs
+### 1.2.0 — Save actions and project SVG browser
 - Save edits back to the opened standalone SVG, with a confirmation if the
   source changed since the preview was opened.
 - Save edited source as a new `.svg` file.
-- Save, export, and copy actions are grouped in the preview toolbar's File menu.
-- Data-URI previews offer Save As actions and never overwrite the source code.
-
-## Implemented, pending release
-
-### 1.3.0 — Project SVG browser
-- Search standalone project `.svg` files by filename or folder.
-- Show thumbnails and file size, with refresh to rescan project content.
-- Open a selected asset in the existing SVG Toolkit editor.
+- Group Save, Save As PNG/SVG, Copy as PNG, and Copy as Base64 data URI in the
+  preview toolbar's File menu.
+- Add a **View → Tool Windows → SVG Toolkit** browser for standalone project
+  `.svg` files, with search by name/folder, refresh, thumbnails, file size,
+  dimensions, and project-relative paths (absolute path on hover).
+- Open browser results in the existing SVG Toolkit editor.
+- Add matching light/dark IntelliJ-style icons for the Project View action and
+  tool window.
 
 ## Proposed future releases
 
-### 1.3.1 — Batch raster export
+### 1.3.0 — Batch raster export
 Support workflows that need raster assets at multiple sizes.
-- Export selected SVG files as PNG at one or more chosen dimensions.
+- Select multiple files in the project browser and export PNGs at one or more
+  chosen dimensions.
 - Let users choose an output directory and avoid silently overwriting files.
 
 **Acceptance:** Each selected SVG produces the expected PNG sizes and existing
 files are handled with an explicit user choice.
 
-### 1.4.0 — SVG diagnostics
+### 1.4.0 — Project-wide embedded SVG search
+Find SVG data URIs across project source files in addition to standalone assets.
+- Show file and location for each match.
+- Open a match in the existing preview/editor.
+
+### 1.5.0 — SVG diagnostics
 Help users understand why an SVG may render or behave unexpectedly.
 - Report actionable parse/render errors in the preview.
 - Flag selected compatibility concerns, such as missing dimensions or
@@ -64,7 +65,7 @@ Help users understand why an SVG may render or behave unexpectedly.
 **Acceptance:** Diagnostics identify the relevant issue, avoid blocking valid
 SVGs, and do not make external network requests to inspect resources.
 
-### 1.5.0 — Compare and theme preview
+### 1.6.0 — Compare and theme preview
 Make visual review of assets easier.
 - Compare two SVGs or before/after versions side by side or with an overlay.
 - Preview an SVG against common light, dark, and custom background colors.

@@ -2,6 +2,15 @@
 
 All notable changes to SVG Toolkit will be documented in this file.
 
+### [1.2.0] - 2026-10-25
+
+#### Added
+- Added the SVG Toolkit project browser for searching standalone SVG files by filename or folder.
+- Added file thumbnails, dimensions, file sizes, and project-relative paths with the absolute path available as a tooltip.
+- Added Save, Save As SVG, Save As PNG, Copy as PNG, and Copy as Base64 data URI actions in the preview File menu.
+- Added saving edits back to standalone SVG files, including a confirmation if the original changed since the preview was opened.
+- Added IntelliJ-style light and dark theme icons for the Project View action and project browser tool window.
+
 ### [1.1.4] - 2026-10-22
 
 #### Fixed
