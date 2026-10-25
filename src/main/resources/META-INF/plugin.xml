@@ -33,7 +33,7 @@
         <fileEditorProvider implementation="com.plugin.svg.SvgFileEditorProvider"/>
         <toolWindow id="SVG Toolkit" anchor="right"
                     factoryClass="com.plugin.svg.SvgProjectBrowserToolWindowFactory"
-                    icon="/icons/svgToolkit.svg"/>
+                    icon="/icons/svgToolkitToolWindow.svg"/>
     </extensions>
     <actions>
         <action id="com.plugin.svg.OpenSvgWithToolkit"
