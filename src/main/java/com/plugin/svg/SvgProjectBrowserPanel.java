@@ -148,6 +148,28 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
                 || path.toLowerCase(Locale.ROOT).contains(query.trim().toLowerCase(Locale.ROOT));
     }
 
+    static String projectRelativePath(String projectBasePath, String filePath) {
+        String normalizedBasePath = normalizePath(projectBasePath);
+        String normalizedFilePath = normalizePath(filePath);
+        if (normalizedBasePath.isEmpty()) {
+            return normalizedFilePath;
+        }
+        String baseWithSeparator = normalizedBasePath.endsWith("/")
+                ? normalizedBasePath
+                : normalizedBasePath + "/";
+        if (normalizedFilePath.startsWith(baseWithSeparator)) {
+            return normalizedFilePath.substring(baseWithSeparator.length());
+        }
+        if (normalizedFilePath.equals(normalizedBasePath)) {
+            return "";
+        }
+        return normalizedFilePath;
+    }
+
+    private static String normalizePath(String path) {
+        return path == null ? "" : path.replace('\\', '/').replaceAll("/+$", "");
+    }
+
     private static boolean isSvgFile(VirtualFile file) {
         return file.getName().toLowerCase(Locale.ROOT).endsWith(".svg");
     }
@@ -265,7 +287,8 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
             nameLabel.setFont(list.getFont().deriveFont(Font.BOLD));
             metadataLabel.setText(formatSize(file.getLength()) + " · "
                     + (dimensions == null ? "Reading dimensions…" : dimensions));
-            pathLabel.setText(path);
+            String relativePath = projectRelativePath(project.getBasePath(), path);
+            pathLabel.setText(relativePath);
             pathLabel.setToolTipText(path);
             Color secondaryForeground = UIManager.getColor("Label.disabledForeground");
             metadataLabel.setForeground(secondaryForeground);
