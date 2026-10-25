@@ -38,16 +38,14 @@ commitments; adjust them based on user feedback.
 - Save, export, and copy actions are grouped in the preview toolbar's File menu.
 - Data-URI previews offer Save As actions and never overwrite the source code.
 
-## Proposed future releases
+## Implemented, pending release
 
 ### 1.3.0 — Project SVG browser
-Make it easier to find and reuse assets in larger projects.
-- Browse project SVG files in a searchable thumbnail gallery.
-- Show useful metadata such as dimensions and file size.
+- Search standalone project `.svg` files by filename or folder.
+- Show thumbnails and file size, with refresh to rescan project content.
 - Open a selected asset in the existing SVG Toolkit editor.
 
-**Acceptance:** Users can find SVG files by name and inspect/open them from the
-gallery without changing their source files.
+## Proposed future releases
 
 ### 1.3.1 — Batch raster export
 Support workflows that need raster assets at multiple sizes.

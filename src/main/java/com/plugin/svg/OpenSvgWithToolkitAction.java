@@ -174,7 +174,7 @@ public class OpenSvgWithToolkitAction extends DumbAwareAction {
         return null;
     }
 
-    private void openPreview(Project project, VirtualFile file) {
+    static void openPreview(Project project, VirtualFile file) {
         try {
             String source = new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
             String svgText = SvgDataUriUtil.decodeSvgContent(source);
@@ -200,7 +200,7 @@ public class OpenSvgWithToolkitAction extends DumbAwareAction {
         }
     }
 
-    private void showNotification(Project project, String message, NotificationType type) {
+    private static void showNotification(Project project, String message, NotificationType type) {
         ApplicationManager.getApplication().invokeLater(() -> {
             if (!project.isDisposed()) {
                 NotificationGroupManager.getInstance()

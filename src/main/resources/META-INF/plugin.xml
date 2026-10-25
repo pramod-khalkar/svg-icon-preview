@@ -11,6 +11,7 @@
             <li><b>Smart SVG Detection</b> - Finds <code>data:image/svg+xml;base64,...</code> strings in code (handles line breaks, charset, multiple encodings)</li>
             <li><b>Gutter Icon Preview</b> - Shows 16×16px preview icon in editor margin</li>
             <li><b>Standalone SVG Files</b> - Right-click an <code>.svg</code> file in the Project view and choose <b>Open with SVG Toolkit</b></li>
+            <li><b>Project SVG Browser</b> - Search project SVG files, view thumbnails and file sizes, and open an asset in the SVG Toolkit editor</li>
             <li><b>Editable Source and Live Preview</b> - Edit formatted SVG source and see the preview update without changing the original until you choose Save</li>
             <li><b>Flexible Layout</b> - View the source and preview side by side, or switch to source-only or preview-only</li>
             <li><b>Preview Controls</b> - Zoom, fit, 1:1 view, checkerboard and grid toggles</li>
@@ -30,6 +31,9 @@
         <applicationService serviceInterface="com.plugin.svg.SvgToolkitSettings"
                            serviceImplementation="com.plugin.svg.SvgToolkitSettings"/>
         <fileEditorProvider implementation="com.plugin.svg.SvgFileEditorProvider"/>
+        <toolWindow id="SVG Toolkit" anchor="right"
+                    factoryClass="com.plugin.svg.SvgProjectBrowserToolWindowFactory"
+                    icon="/icons/svgToolkit.svg"/>
     </extensions>
     <actions>
         <action id="com.plugin.svg.OpenSvgWithToolkit"

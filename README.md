@@ -17,6 +17,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 - 👁️ **Gutter Icon Preview** - Shows 16×16px icon in editor margin
 - 📄 **Editor Tab Preview** - Click gutter icon to open SVG in editor tab with split view (source | preview)
 - 🗂️ **Standalone SVG Preview** - Right-click an `.svg` file in the Project view and choose **Open with SVG Toolkit**
+- 🔎 **Project SVG Browser** - Open the SVG Toolkit tool window to search project `.svg` files, preview thumbnails, and open assets in the editor
 - ✏️ **Live SVG Editing** - Edit SVG markup in the preview tab and see debounced live renders; edits remain local to that tab
 - 🔎 **Preview Controls** - Zoom in/out, fit the image to the preview, view at 1:1, and toggle checkerboard/grid overlays
 
@@ -78,6 +79,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 2. **Hover over line** → See small icon in gutter
 
    For a standalone SVG file, right-click it in the Project view and choose **Open with SVG Toolkit**.
+   To browse all project SVG files, open **View → Tool Windows → SVG Toolkit**, search by filename or folder, and double-click a result (or press Enter) to open it.
 
 3. **Click gutter icon** → SVG opens in editor tab with:
    - Editable, pretty-formatted SVG source beside the preview; the source pane does not display the Base64 URI

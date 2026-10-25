@@ -98,6 +98,7 @@ public class SvgDataUriUtilTest {
 
         assertTrue(SvgFileEditor.formatImageDetails(renderedImage, svgSource)
                 .startsWith("24 × 16 px · SVG "));
+        assertEquals("24 × 16 px", SvgFileEditor.formatSvgDimensions(svgSource));
     }
 
     @Test

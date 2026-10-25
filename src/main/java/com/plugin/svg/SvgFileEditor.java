@@ -255,6 +255,14 @@ public class SvgFileEditor implements FileEditor {
                 formatDimension(width), formatDimension(height), formatByteSize(sourceBytes));
     }
 
+    static @Nullable String formatSvgDimensions(@Nullable String source) {
+        double[] dimensions = getSvgDimensions(source);
+        if (dimensions == null) {
+            return null;
+        }
+        return formatDimension(dimensions[0]) + " × " + formatDimension(dimensions[1]) + " px";
+    }
+
     private static double[] getSvgDimensions(@Nullable String source) {
         if (source == null) {
             return null;
