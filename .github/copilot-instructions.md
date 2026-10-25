@@ -8,6 +8,7 @@ This is a Java 17 IntelliJ Platform plugin for detecting and previewing SVG data
 - Preserve IntelliJ threading requirements: access PSI in read actions, update Swing on the EDT, and keep expensive rendering off the UI thread.
 - Custom `FileEditor.getState()` implementations must return a non-null `FileEditorState`; IntelliJ requests editor state during tab selection and document-history updates.
 - For every release, synchronize the version and release information in `CHANGELOG.md`, `README.md`, and `build.gradle.kts`, and review `src/main/resources/META-INF/plugin.xml`, updating its description to reflect changed or added user-facing features.
+- After each code or user-facing behavior change, update the relevant documentation in the same change (such as README usage, `docs/roadmap.md`, `instruction.md`, or plugin feature descriptions). Do not defer these documentation updates.
 - Preserve support for text-based file types and the URI encodings currently handled. Add or update focused JUnit 4 tests for behavior changes.
 - Run `./gradlew test` for targeted unit-test validation and `./gradlew build` for broader plugin/build validation.
 - Keep changes focused; do not edit generated files under `build/`, `.gradle/`, or IDE sandbox output.

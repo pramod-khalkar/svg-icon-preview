@@ -58,6 +58,7 @@ For every release, keep release information synchronized across all user-facing 
 - Preserve behavior for non-Java text files and for supported URI encodings. Add focused tests for decoder or detection changes, including malformed and boundary inputs where relevant.
 - Keep cache behavior bounded and avoid retaining project/PSI objects in long-lived static state.
 - Distinguish released functionality from current working-tree features in user-facing documentation. Update `CHANGELOG.md` only when preparing an actual release; do not describe unreleased work as part of the current published version.
+- After every code or user-facing behavior change, update the directly relevant documentation in the same change (for example README usage, roadmap status, plugin description, and release notes when preparing a release). Do not leave documentation updates for a later task.
 - Follow nearby Java style and existing IntelliJ Platform APIs. Update `plugin.xml` when adding/removing platform extensions or services.
 - Do not assume README feature descriptions, file names, roadmap entries, or changelog entries exactly match current code. Verify behavior from active registrations and call sites.
 - Make focused changes; do not modify generated Gradle output, `.gradle/`, `build/`, or IDE sandbox files as source.
