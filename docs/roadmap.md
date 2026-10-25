@@ -1,139 +1,93 @@
-# SVG Toolkit — Incremental & Easy Roadmap
+# SVG Toolkit Roadmap
 
-Goal: evolve "SVG Icon Preview" (v1.0.0) into a developer-friendly SVG Toolkit using many small, understandable releases. Each release is intentionally small so you get value quickly and can iterate.
+This roadmap reflects the shipped features documented in `CHANGELOG.md` through
+version 1.1.4, plus the next planned feature implemented in the current
+work-in-progress. Future versions are tentative priorities, not release
+commitments; adjust them based on user feedback.
 
-Principles
-----------
-- Small, focused releases (weeks, not months)
-- Clear acceptance criteria per release
-- Backwards-compatible where possible
-- Measure & iterate based on user feedback
+## Completed
 
-Current baseline
-----------------
-- v1.0.0 (current)
-  - Gutter previews for base64 SVG data URIs
-  - Popup preview with zoom
-  - Marketplace package and build automation
-  - README, sample assets (docs/sample-icons.json)
+### 1.0.0 — SVG data URI previews
+- Detect SVG data URIs in code and show gutter previews.
+- Open a larger preview from the gutter.
 
-Micro-release roadmap (short, clear, incremental)
--------------------------------------------------
+### 1.1.0 — Editor preview and reliability
+- Open previews in editor tabs with formatted SVG source and rendered preview.
+- Add zoom controls, background rendering, caching, configurable size limits,
+  robust decoding, and improved error reporting.
 
-v1.0.1 — Bugfixes & UX polish (1 week)
-- Why: small fixes improve stability and user trust
-- Scope:
-  - Fix any visible rendering glitches
-  - Improve popup positioning and close behavior
-  - Add a keyboard shortcut to open the preview
-- Acceptance:
-  - No major rendering bugs in sample files
-  - Popup opens and closes reliably; shortcut works
+### 1.1.2 — Text-file coverage
+- Detect SVG data URIs across supported text-based file types.
 
-v1.0.2 — Faster previews & background rendering (1 week)
-- Why: reduce UI lag when showing previews
-- Scope:
-  - Move SVG rendering to a background thread
-  - Add a small (loading) placeholder while rendering
-- Acceptance:
-  - Editor remains responsive when previews load
-  - Placeholder visible for slow renders only
+### 1.1.3 — Standalone SVG editing and export
+- Open standalone `.svg` files in SVG Toolkit from the Project view.
+- Edit formatted source with a live preview; edits remain local to the preview.
+- Switch between split, source-only, and preview-only layouts.
+- Copy the edited SVG as a data URI, copy the preview as PNG, or export it to PNG.
 
-v1.0.3 — README examples & sample files (1 week)
-- Why: better onboarding for new users
-- Scope:
-  - Add more sample JSONs and small example projects in /docs
-  - Short GIF showing preview workflow in README
-- Acceptance:
-  - README contains 2 short examples and 1 GIF
-  - Users can reproduce preview easily from examples
+### 1.1.4 — Stability and preview details
+- Improve Project View selection handling and editor-state reliability.
+- Correct displayed SVG dimensions and decoded source-size units.
 
-v1.1.0 — Inspector (small, usable) (2 weeks)
-- Why: show key metadata and useful actions without heavy UI
-- Scope:
-  - Simple Tool Window "Inspector" that lists:
-    - Detected SVGs in the current file
-    - Basic metadata: viewBox, width, height
-    - Actions: Copy Data URI, Copy PNG
-- Acceptance:
-  - Inspector lists items for a file with data URIs
-  - Copy actions place expected content on clipboard
+## Implemented, pending release
 
-v1.1.1 — Hover details & quick actions (1 week)
-- Why: quick access without opening the Inspector
-- Scope:
-  - Hover popup shows metadata + small action buttons (Copy, Open Inspector)
-- Acceptance:
-  - Hover shows within 100–200ms and buttons work
+### 1.2.0 — Save edited SVGs
+- Save edits back to the opened standalone SVG, with a confirmation if the
+  source changed since the preview was opened.
+- Save edited source as a new `.svg` file.
+- Save, export, and copy actions are grouped in the preview toolbar's File menu.
+- Data-URI previews offer Save As actions and never overwrite the source code.
 
-v1.2.0 — Local icon library (MVP) (2–3 weeks)
-- Why: let users collect and reuse icons
-- Scope:
-  - Simple library persisted per-project (JSON file in .idea or .svg-library)
-  - UI to view thumbnails and insert into editor (copy data URI)
-  - Import/export JSON
-- Acceptance:
-  - Library persists between IDE restarts
-  - Import/export works with docs/sample-icons.json
+## Proposed future releases
 
-v1.2.1 — Tagging & Search (1 week)
-- Why: find icons quickly
-- Scope:
-  - Add tags and a search box to the library UI
-- Acceptance:
-  - Search returns matching icons; tags filter correctly
+### 1.3.0 — Project SVG browser
+Make it easier to find and reuse assets in larger projects.
+- Browse project SVG files in a searchable thumbnail gallery.
+- Show useful metadata such as dimensions and file size.
+- Open a selected asset in the existing SVG Toolkit editor.
 
-v1.3.0 — Quick editor (edit source + preview) (2–3 weeks)
-- Why: enable small edits without leaving IDE
-- Scope:
-  - Open the SVG source in a small dialog or editor tab with live preview
-  - Simple operations: replace color (find/replace on `fill`), scale (set width/height)
-- Acceptance:
-  - Changes reflect in preview live
-  - Save writes changes back to the original place or clipboard
+**Acceptance:** Users can find SVG files by name and inspect/open them from the
+gallery without changing their source files.
 
-v1.3.1 — Undo/Redo in Quick Editor (1 week)
-- Scope:
-  - In-memory undo/redo while editing before save
-- Acceptance:
-  - Undo/redo works for edit actions
+### 1.3.1 — Batch raster export
+Support workflows that need raster assets at multiple sizes.
+- Export selected SVG files as PNG at one or more chosen dimensions.
+- Let users choose an output directory and avoid silently overwriting files.
 
-v1.4.0 — Export & Optimize (MVP) (2–4 weeks)
-- Why: make icons production-ready
-- Scope:
-  - Export to PNG (choose size) and to optimized SVG (strip comments/metadata)
-  - Use a Java optimizer or call `svgo` if available (optional)
-- Acceptance:
-  - Exports generate expected outputs and optimized size is reduced
+**Acceptance:** Each selected SVG produces the expected PNG sizes and existing
+files are handled with an explicit user choice.
 
-v1.4.1 — Batch export (1 week)
-- Scope:
-  - Export selected library items in one operation
-- Acceptance:
-  - Batch produces files in chosen output dir
+### 1.4.0 — SVG diagnostics
+Help users understand why an SVG may render or behave unexpectedly.
+- Report actionable parse/render errors in the preview.
+- Flag selected compatibility concerns, such as missing dimensions or
+  externally referenced resources, without treating every valid SVG as invalid.
 
-v1.5.0 — Code snippets & templates (2–3 weeks)
-- Why: help developers quickly insert components
-- Scope:
-  - Generate small code snippets: React component (TSX), inline SVG, Android VectorDrawable
-  - Simple UI to choose template and copy result
-- Acceptance:
-  - Generated snippet compiles in minimal sample or pastes correctly
+**Acceptance:** Diagnostics identify the relevant issue, avoid blocking valid
+SVGs, and do not make external network requests to inspect resources.
 
-Maintenance releases (ongoing)
------------------------------
-- v1.x.y: patches and small improvements based on user feedback
-- Keep `since-build` updated for new IntelliJ releases
+### 1.5.0 — Compare and theme preview
+Make visual review of assets easier.
+- Compare two SVGs or before/after versions side by side or with an overlay.
+- Preview an SVG against common light, dark, and custom background colors.
 
-How to read this roadmap
-------------------------
-- Each release is intentionally small and deliverable in 1–3 weeks
-- Acceptance criteria are concrete — they help QA and define "done"
-- After each minor release, gather feedback and adjust priorities
+**Acceptance:** Users can switch comparison inputs and backgrounds without
+modifying either SVG.
 
-Next recommended action (pick one)
------------------------------------
-1. Create issues for v1.0.1, v1.0.2 and v1.0.3 (quick wins)
-2. Start implementing v1.1.0 Inspector scaffold
+## Ideas to validate before scheduling
 
-Tell me which option you prefer and I will either create GitHub issues and a milestone or scaffold the Inspector tool window in the repo.
+- Click an element in the rendered SVG to locate and inspect its source markup.
+- Color replacement preview with an explicit apply/cancel step.
+- SVG optimization with a before/after size comparison.
+
+Prioritize these only after validating demand; avoid duplicating general-purpose
+SVG generation or code-snippet generation already available through AI assistants
+and IDE tooling.
+
+## Release process
+
+- Treat proposed version numbers and scopes as provisional until a release is
+  planned.
+- For each release, synchronize `CHANGELOG.md`, `README.md`, `build.gradle.kts`,
+  and the user-facing description in `src/main/resources/META-INF/plugin.xml`.
+- Keep changes focused and add tests for behavior changes.

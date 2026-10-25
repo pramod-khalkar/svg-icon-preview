@@ -29,6 +29,9 @@ public class SvgVirtualFile extends VirtualFile {
     private final String svgText;      // decoded SVG markup
     private final String rawBase64;    // original data URI kept for reference
     private final BufferedImage previewImage;
+    private final @Nullable VirtualFile sourceFile;
+    private volatile @Nullable String originalSourceContent;
+    private volatile String savedEditorContent;
     private volatile String fileContent;
     private volatile long modificationStamp = System.currentTimeMillis();
 
@@ -38,18 +41,34 @@ public class SvgVirtualFile extends VirtualFile {
 
     public SvgVirtualFile(String displayName, String svgText, String rawBase64, BufferedImage previewImage,
                           @Nullable String editorTabName) {
+        this(displayName, svgText, rawBase64, previewImage, editorTabName, null, null);
+    }
+
+    public SvgVirtualFile(String displayName, String svgText, String rawBase64, BufferedImage previewImage,
+                          @Nullable String editorTabName, @Nullable VirtualFile sourceFile,
+                          @Nullable String originalSourceContent) {
         this.displayName = displayName;
         this.editorTabName = editorTabName;
         this.svgText = svgText;
         this.rawBase64 = rawBase64;
         this.previewImage = previewImage;
-        this.fileContent = SvgXmlFormatter.format(svgText);
+        this.sourceFile = sourceFile;
+        this.originalSourceContent = originalSourceContent;
+        this.savedEditorContent = SvgXmlFormatter.format(svgText);
+        this.fileContent = savedEditorContent;
     }
 
     public String getSvgText() { return svgText; }
     public String getRawBase64() { return rawBase64; }
     public BufferedImage getPreviewImage() { return previewImage; }
     public @Nullable String getEditorTabName() { return editorTabName; }
+    public @Nullable VirtualFile getSourceFile() { return sourceFile; }
+    public @Nullable String getOriginalSourceContent() { return originalSourceContent; }
+    public String getSavedEditorContent() { return savedEditorContent; }
+    public void markSaved(String content) {
+        originalSourceContent = content;
+        savedEditorContent = content;
+    }
 
     @Override public @NotNull String getName() {
         return editorTabName == null ? displayName : editorTabName;

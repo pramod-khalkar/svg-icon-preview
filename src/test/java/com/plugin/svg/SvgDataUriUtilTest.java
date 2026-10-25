@@ -1,5 +1,6 @@
 package com.plugin.svg;
 
+import com.intellij.testFramework.LightVirtualFile;
 import org.junit.Test;
 import java.awt.image.BufferedImage;
 
@@ -48,6 +49,21 @@ public class SvgDataUriUtilTest {
 
         assertEquals("test.svg", previewFile.getName());
         assertEquals("test.svg", previewFile.getEditorTabName());
+    }
+
+    @Test
+    public void testPreviewVirtualFileKeepsStandaloneSourceFileForSaving() {
+        LightVirtualFile sourceFile = new LightVirtualFile("test.svg", SIMPLE_SVG);
+        SvgVirtualFile previewFile = new SvgVirtualFile(
+                "svg-preview-test.svg-123", SIMPLE_SVG, SIMPLE_SVG, null,
+                "test.svg", sourceFile, SIMPLE_SVG);
+
+        assertSame(sourceFile, previewFile.getSourceFile());
+        assertEquals(SIMPLE_SVG, previewFile.getOriginalSourceContent());
+
+        previewFile.markSaved("<svg><title>saved</title></svg>");
+        assertEquals("<svg><title>saved</title></svg>", previewFile.getOriginalSourceContent());
+        assertEquals("<svg><title>saved</title></svg>", previewFile.getSavedEditorContent());
     }
 
     @Test

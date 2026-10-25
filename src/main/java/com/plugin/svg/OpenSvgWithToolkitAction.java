@@ -186,7 +186,8 @@ public class OpenSvgWithToolkitAction extends DumbAwareAction {
 
             BufferedImage preview = SvgRenderer.render(svgText, 400, 400);
             String previewName = "svg-preview-" + file.getName() + "-" + System.currentTimeMillis();
-            SvgVirtualFile previewFile = new SvgVirtualFile(previewName, svgText, source, preview, file.getName());
+            SvgVirtualFile previewFile = new SvgVirtualFile(
+                    previewName, svgText, source, preview, file.getName(), file, source);
             ApplicationManager.getApplication().invokeLater(() -> {
                 if (!project.isDisposed()) {
                     FileEditorManager.getInstance(project).openFile(previewFile, true);

@@ -37,10 +37,8 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
 - 🖥️ **High-Quality Rendering** - Bicubic interpolation for smooth scaling
 - 🎛️ **Toolbar Controls** - Zoom in/out, reset, copy/export buttons
 
-### Export Capabilities
-- 📥 **Copy as PNG** - One-click clipboard copy (paste anywhere: Slack, email, design tools)
-- 💾 **Export to File** - Save rendered SVG as PNG with file chooser
-- 🔤 **Copy Base64** - Copy the SVG as a complete `data:image/svg+xml;base64,...` URI
+### Save, Export, and Copy
+- 📁 **File menu** - Save edits to an opened standalone SVG, save edited source as a new `.svg`, save the preview as PNG, or copy as PNG/Base64 data URI
 
 ### Configuration
 - ⚙️ **User Settings** - Configurable MAX_INLINE_SIZE (10 KB–10 MB, default 200 KB)
@@ -91,8 +89,7 @@ A comprehensive IntelliJ IDEA plugin for working with SVG images embedded as dat
    - **Zoom**: Use the zoom icons, Ctrl+mouse wheel, or `Ctrl+±`
    - **Actual size**: Use the 1:1 icon or `Ctrl+0`; preview opens at 1:1 by default
    - **Fit to preview**: Use the fit icon to scale the whole image into the preview pane
-   - **Copy as PNG / Export PNG**: Use the corresponding preview toolbar icons
-   - **Copy Base64**: Copy the complete SVG data URI for manual replacement if desired
+   - **File menu**: Save edits to an opened standalone SVG, save as PNG/SVG, or copy as PNG/Base64 data URI. Data-URI previews offer Save As options only.
    - **Background / grid**: Toggle the checkerboard or grid icons; disabling checkerboard uses the IDE theme background
 
 ## Configuration

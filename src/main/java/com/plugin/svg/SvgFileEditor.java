@@ -5,6 +5,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -19,6 +20,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.ui.OnePixelSplitter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +34,8 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -352,22 +356,18 @@ public class SvgFileEditor implements FileEditor {
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
         toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xCCCCCC)));
 
-        toolbar.add(createIconButton(createCopyOverlayIcon(graphics -> {
-                    graphics.drawRoundRect(1, 2, 12, 11, 2, 2);
-                    graphics.drawOval(8, 4, 2, 2);
-                    graphics.drawLine(2, 11, 5, 7);
-                    graphics.drawLine(5, 7, 7, 9);
-                    graphics.drawLine(7, 9, 9, 7);
-                    graphics.drawLine(9, 7, 12, 11);
-                }),
-                "Copy as PNG", this::copyAsImageToClipboard));
-        toolbar.add(createIconButton(AllIcons.Actions.Download, "Export PNG", this::exportAsPng));
-        toolbar.add(createIconButton(createCopyOverlayIcon(graphics -> {
-                    graphics.drawRoundRect(1, 6, 9, 5, 3, 3);
-                    graphics.drawRoundRect(6, 4, 9, 5, 3, 3);
-                    graphics.drawLine(5, 8, 10, 7);
-                }),
-                "Copy Base64 data URI", this::copyBase64ToClipboard));
+        JButton fileMenuButton = new JButton("File");
+        fileMenuButton.setIcon(new DropdownArrowIcon());
+        fileMenuButton.setHorizontalTextPosition(SwingConstants.LEFT);
+        fileMenuButton.setIconTextGap(6);
+        fileMenuButton.setFocusable(false);
+        fileMenuButton.setMargin(new Insets(2, 8, 2, 8));
+        fileMenuButton.setToolTipText("Save, export, or copy this SVG");
+        fileMenuButton.addActionListener(event -> {
+            JPopupMenu menu = createFileMenu();
+            menu.show(fileMenuButton, 0, fileMenuButton.getHeight());
+        });
+        toolbar.add(fileMenuButton);
         toolbar.add(new JSeparator(SwingConstants.VERTICAL));
         toolbar.add(createIconButton(AllIcons.General.ZoomOut, "Zoom out", previewPanel::zoomOut));
         toolbar.add(createIconButton(AllIcons.General.ZoomIn, "Zoom in", previewPanel::zoomIn));
@@ -438,6 +438,31 @@ public class SvgFileEditor implements FileEditor {
     @FunctionalInterface
     private interface IconArtwork {
         void paint(Graphics2D graphics);
+    }
+
+    private static class DropdownArrowIcon implements Icon {
+        @Override
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            Graphics2D g2d = (Graphics2D) graphics.create();
+            try {
+                g2d.setColor(component.getForeground());
+                g2d.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                g2d.drawLine(x + 2, y + 3, x + 6, y + 7);
+                g2d.drawLine(x + 6, y + 7, x + 10, y + 3);
+            } finally {
+                g2d.dispose();
+            }
+        }
+
+        @Override
+        public int getIconWidth() {
+            return 12;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return 10;
+        }
     }
 
     private JComponent createLayoutToolbar() {
@@ -902,7 +927,7 @@ public class SvgFileEditor implements FileEditor {
                     Toolkit.getDefaultToolkit().getSystemClipboard();
             ImageSelection imageSelection = new ImageSelection(currentImage);
             clipboard.setContents(imageSelection, null);
-            showCopyNotification("SVG image copied to clipboard as PNG.");
+            showInfoNotification("SVG image copied to clipboard as PNG.");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(mainPanel,
                     "Failed to copy: " + ex.getMessage(),
@@ -920,7 +945,7 @@ public class SvgFileEditor implements FileEditor {
             }
             String encodedDataUri = SvgDataUriUtil.encodeBase64DataUri(svgText);
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(encodedDataUri), null);
-            showCopyNotification("Base64 SVG data URI copied to clipboard.");
+            showInfoNotification("Base64 SVG data URI copied to clipboard.");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(mainPanel,
                     "Failed to copy Base64: " + ex.getMessage(),
@@ -928,11 +953,154 @@ public class SvgFileEditor implements FileEditor {
         }
     }
 
-    private void showCopyNotification(String message) {
+    private void showInfoNotification(String message) {
         NotificationGroupManager.getInstance()
                 .getNotificationGroup(NOTIFICATION_GROUP_ID)
                 .createNotification(message, NotificationType.INFORMATION)
                 .notify(project);
+    }
+
+    private JPopupMenu createFileMenu() {
+        JPopupMenu menu = new JPopupMenu();
+        SvgVirtualFile previewFile = virtualFile instanceof SvgVirtualFile
+                ? (SvgVirtualFile) virtualFile
+                : null;
+        JMenuItem saveItem = new JMenuItem("Save", AllIcons.Actions.Download);
+        saveItem.setEnabled(previewFile != null && previewFile.getSourceFile() != null
+                && !previewFile.getSavedEditorContent().equals(getEditedSvg()));
+        saveItem.addActionListener(event -> {
+            if (previewFile != null) {
+                saveToOriginal(previewFile);
+            }
+        });
+        menu.add(saveItem);
+
+        JMenuItem savePngItem = new JMenuItem("Save As PNG...", AllIcons.Actions.Download);
+        savePngItem.setEnabled(currentImage != null);
+        savePngItem.addActionListener(event -> exportAsPng());
+        menu.add(savePngItem);
+
+        JMenuItem saveSvgItem = new JMenuItem("Save As SVG...", AllIcons.Actions.Download);
+        saveSvgItem.addActionListener(event -> saveAsSvg());
+        menu.add(saveSvgItem);
+
+        menu.addSeparator();
+        JMenuItem copyPngItem = new JMenuItem("Copy as PNG", createCopyOverlayIcon(graphics -> {
+            graphics.drawRoundRect(1, 2, 12, 11, 2, 2);
+            graphics.drawOval(8, 4, 2, 2);
+            graphics.drawLine(2, 11, 5, 7);
+            graphics.drawLine(5, 7, 7, 9);
+            graphics.drawLine(7, 9, 9, 7);
+            graphics.drawLine(9, 7, 12, 11);
+        }));
+        copyPngItem.setEnabled(currentImage != null);
+        copyPngItem.addActionListener(event -> copyAsImageToClipboard());
+        menu.add(copyPngItem);
+
+        JMenuItem copyBase64Item = new JMenuItem("Copy as Base64 data URI",
+                createCopyOverlayIcon(graphics -> {
+                    graphics.drawRoundRect(1, 6, 9, 5, 3, 3);
+                    graphics.drawRoundRect(6, 4, 9, 5, 3, 3);
+                    graphics.drawLine(5, 8, 10, 7);
+                }));
+        copyBase64Item.addActionListener(event -> copyBase64ToClipboard());
+        menu.add(copyBase64Item);
+        return menu;
+    }
+
+    private void saveToOriginal(SvgVirtualFile previewFile) {
+        VirtualFile sourceFile = previewFile.getSourceFile();
+        if (sourceFile == null || !sourceFile.isValid()) {
+            showSaveError("The original SVG file is no longer available.");
+            return;
+        }
+        if (!sourceFile.isWritable()) {
+            showSaveError("The original SVG file is read-only.");
+            return;
+        }
+
+        String editedSvg = getEditedSvg();
+        FileDocumentManager documentManager = FileDocumentManager.getInstance();
+        Document sourceDocument = documentManager.getDocument(sourceFile);
+        if (sourceDocument == null) {
+            showSaveError("Unable to open the original SVG file for writing.");
+            return;
+        }
+        String originalContent = previewFile.getOriginalSourceContent();
+        String currentSourceContent = ReadAction.compute(sourceDocument::getText);
+        if (originalContent != null && !originalContent.equals(currentSourceContent)) {
+            int choice = JOptionPane.showConfirmDialog(
+                    SwingUtilities.getWindowAncestor(mainPanel),
+                    "The original SVG has changed since this preview was opened. Overwrite those changes?",
+                    "Confirm SVG overwrite",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+            if (choice != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+
+        try {
+            WriteCommandAction.runWriteCommandAction(project, () -> {
+                sourceDocument.setText(editedSvg);
+                documentManager.saveDocument(sourceDocument);
+            });
+            previewFile.markSaved(editedSvg);
+            showInfoNotification("Saved SVG to " + sourceFile.getPresentableUrl());
+        } catch (RuntimeException exception) {
+            LOG.warn("[SVG Toolkit] Unable to save SVG to " + sourceFile.getPath(), exception);
+            showSaveError("Unable to save SVG: " + exception.getMessage());
+        }
+    }
+
+    private void saveAsSvg() {
+        String editedSvg = getEditedSvg();
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save SVG As");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "SVG Image (*.svg)", "svg"));
+        SvgVirtualFile previewFile = virtualFile instanceof SvgVirtualFile
+                ? (SvgVirtualFile) virtualFile
+                : null;
+        VirtualFile sourceFile = previewFile == null ? null : previewFile.getSourceFile();
+        fileChooser.setSelectedFile(new File(sourceFile == null ? "icon.svg" : sourceFile.getName()));
+
+        if (fileChooser.showSaveDialog(SwingUtilities.getWindowAncestor(mainPanel))
+                != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File selectedFile = fileChooser.getSelectedFile();
+        String filePath = selectedFile.getAbsolutePath();
+        if (!filePath.toLowerCase(java.util.Locale.ROOT).endsWith(".svg")) {
+            filePath += ".svg";
+        }
+        Path outputPath = Path.of(filePath);
+        if (Files.exists(outputPath)
+                && JOptionPane.showConfirmDialog(SwingUtilities.getWindowAncestor(mainPanel),
+                "The file already exists. Replace it?",
+                "Confirm overwrite",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            Files.writeString(outputPath, editedSvg, StandardCharsets.UTF_8);
+            showInfoNotification("Saved SVG to " + outputPath);
+        } catch (IOException exception) {
+            LOG.warn("[SVG Toolkit] Unable to save SVG to " + outputPath, exception);
+            showSaveError("Unable to save SVG: " + exception.getMessage());
+        }
+    }
+
+    private void showSaveError(String message) {
+        JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(mainPanel),
+                message, "SVG Save Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private String getEditedSvg() {
+        return ReadAction.compute(() -> svgEditor.getDocument().getText());
     }
 
     private void exportAsPng() {
