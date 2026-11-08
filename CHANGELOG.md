@@ -2,14 +2,24 @@
 
 All notable changes to SVG Toolkit will be documented in this file.
 
-### [1.2.0] - 2026-10-25
+### [1.2.0] - 2026-11-08
 
 #### Added
-- Added the SVG Toolkit project browser for searching standalone SVG files by filename or folder.
-- Added file thumbnails, dimensions, file sizes, and project-relative paths with the absolute path available as a tooltip.
+- Added the SVG Toolkit project browser with separate **SVG Files** and **SVG Data URIs** tabs.
+- Added project-wide search for SVG data URIs in project text files, with rendered thumbnails, source snippets, line numbers, source navigation, and SVG preview actions.
+- Added file thumbnails, dimensions, file sizes, and project-relative paths for standalone SVG files, with the absolute path available as a tooltip.
 - Added Save, Save As SVG, Save As PNG, Copy as PNG, and Copy as Base64 data URI actions in the preview File menu.
 - Added saving edits back to standalone SVG files, including a confirmation if the original changed since the preview was opened.
 - Added IntelliJ-style light and dark theme icons for the Project View action and project browser tool window.
+- Added a one-time What's New notification after installation or an update, with a dialog of release highlights.
+
+#### Improved
+- Reuse an already-open SVG Toolkit preview tab when reopening the same standalone SVG or SVG data URI.
+- Show the source SVG filename in standalone SVG Toolkit preview tabs.
+- Require IDE restart confirmation when installing, updating, or uninstalling the plugin.
+
+#### Fixed
+- Fixed a read-access exception when saving edited SVG content back to its original file.
 
 ### [1.1.4] - 2026-10-22
 

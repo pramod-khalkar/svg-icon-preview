@@ -25,6 +25,8 @@ public class SvgToolkitSettings implements PersistentStateComponent<SvgToolkitSe
      */
     public int maxInlineSizeKb = DEFAULT_MAX_INLINE_SIZE_KB;
 
+    public String lastShownReleaseNotesVersion = "";
+
     @Nullable
     @Override
     public SvgToolkitSettings getState() {
@@ -41,6 +43,14 @@ public class SvgToolkitSettings implements PersistentStateComponent<SvgToolkitSe
      */
     public long getMaxInlineSizeBytes() {
         return (long) maxInlineSizeKb * 1024;
+    }
+
+    public synchronized boolean markReleaseNotesShownIfNeeded(String version) {
+        if (version.equals(lastShownReleaseNotesVersion)) {
+            return false;
+        }
+        lastShownReleaseNotesVersion = version;
+        return true;
     }
 
     /**

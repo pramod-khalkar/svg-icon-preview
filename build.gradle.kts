@@ -64,9 +64,14 @@ tasks {
             """
             <h3>Version 1.2.0</h3>
             <ul>
-                <li>Added a project SVG browser with search, thumbnails, dimensions, file sizes, and project-relative paths</li>
+                <li>Added SVG Files and SVG Data URIs browser tabs, including project-wide data URI search with thumbnails, source snippets, line numbers, preview, and source navigation</li>
+                <li>Added standalone SVG thumbnails, dimensions, file sizes, and project-relative paths</li>
                 <li>Added Save, Save As SVG, Save As PNG, Copy as PNG, and Copy as Base64 data URI actions in the preview File menu</li>
                 <li>Added saving edited standalone SVGs with confirmation when the original file changed</li>
+                <li>Reopen an existing preview tab for the same SVG file or data URI, and show the source filename on standalone SVG preview tabs</li>
+                <li>Prompt for an IDE restart after plugin installation, update, or removal</li>
+                <li>Show a one-time What's New notification with release highlights after installation or an update</li>
+                <li>Fix a read-access exception when saving edited SVG content back to its original file</li>
                 <li>Added IntelliJ-style light and dark icons for the Project View action and SVG Toolkit tool window</li>
             </ul>
             """.trimIndent()

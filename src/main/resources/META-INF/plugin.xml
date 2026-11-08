@@ -10,8 +10,10 @@
         <ul>
             <li><b>Embedded SVG Detection</b> - Finds <code>data:image/svg+xml</code> URIs in text-based files and displays gutter previews</li>
             <li><b>Multiple URI Encodings</b> - Decodes standard and URL-safe Base64, URL-encoded, and plain SVG data URIs, including missing Base64 padding</li>
-            <li><b>Project SVG Browser</b> - Search standalone <code>.svg</code> files and embedded SVG data URIs in project text files; view rendered thumbnails, file sizes, dimensions, source locations, and project-relative paths</li>
+            <li><b>Project SVG Browser</b> - Browse standalone <code>.svg</code> files and search SVG data URIs in project text files; view rendered thumbnails, file sizes, dimensions, source snippets, line numbers, and project-relative paths</li>
             <li><b>Open Existing SVGs</b> - Open a standalone SVG from the Project View context menu or the project browser</li>
+            <li><b>Reuse Preview Tabs</b> - Reopening the same standalone SVG or SVG data URI selects its existing SVG Toolkit preview tab</li>
+            <li><b>What's New</b> - See release highlights in a one-time notification after installation or an update</li>
             <li><b>Source Editor and Live Preview</b> - Edit formatted SVG source and see a debounced preview without automatically modifying the original</li>
             <li><b>Save and Export</b> - Save changes to an opened standalone SVG, save a new SVG or PNG, or copy the preview as PNG or the SVG as a Base64 data URI</li>
             <li><b>Preview Layout and Controls</b> - Use split, source-only, or preview-only layouts; zoom, fit, view at 1:1, and toggle checkerboard or grid overlays</li>
@@ -24,6 +26,7 @@
     <depends>com.intellij.modules.platform</depends>
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="SVG Toolkit" displayType="BALLOON"/>
+        <postStartupActivity implementation="com.plugin.svg.settings.SvgToolkitWhatsNewActivity"/>
         <codeInsight.lineMarkerProvider implementationClass="com.plugin.svg.action.SvgIconLineMarkerProvider" />
         <applicationConfigurable groupId="tools" displayName="SVG Toolkit"
                                  id="preferences.svgtoolkit"

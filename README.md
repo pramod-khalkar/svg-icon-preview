@@ -8,9 +8,6 @@ an editor and project browser for standalone SVG files.
 **IDE compatibility:** IntelliJ Platform 2023.1 and later
 **Runtime:** Java 17+
 
-The project-wide embedded SVG search described below is implemented in the
-current working tree but is not part of the 1.2.0 release.
-
 ## Features
 
 ### Preview SVG data URIs in code
@@ -36,16 +33,16 @@ current working tree but is not part of the 1.2.0 release.
 - Alternatively, right-click an `.svg` file in the Project view and choose
   **Open with SVG Toolkit**.
 
-### Project-wide embedded SVG data URI search (not yet released)
+### Project-wide SVG data URI search
 
 Choose the **SVG Data URIs** tab to search project text files for
-supported `data:image/svg+xml` URIs. Each result shows a rendered thumbnail,
+supported `data:image/svg+xml` URIs. Search follows IntelliJ project content
+scope and exclusions and skips binary files. Each result shows a rendered thumbnail,
 project-relative path, a clearly labeled **Line** number beside the path, and
 source snippet. Double-click a result or select **Preview** to open the SVG
 editor; reopening the same data URI selects its existing preview tab.
-**Open Source** navigates to the matching source line. The search follows
-IntelliJ project content scope and exclusions and skips binary files. Use the
-tab's refresh button to rescan after project changes.
+**Open Source** navigates to the matching source line. Use the tab's refresh
+button to rescan after project changes.
 
 ### Edit and preview
 
@@ -80,7 +77,9 @@ tab's refresh button to rescan after project changes.
 
 In the IDE, open **Settings/Preferences → Plugins → Marketplace**, search for
 **SVG Toolkit**, and install it. IntelliJ will prompt you to restart the IDE to
-finish installing, updating, or uninstalling the plugin.
+finish installing, updating, or uninstalling the plugin. After installation or
+an update, SVG Toolkit shows a one-time notification when you open a project;
+select **What's New** to view the release highlights.
 
 To install a release ZIP, use **Settings/Preferences → Plugins → Install Plugin
 from Disk…**.
@@ -200,7 +199,7 @@ src/main/resources/
 **The project browser does not show a file**
 - Confirm it is a standalone `.svg` file inside the current project content.
 - Use the browser refresh button after adding or moving assets.
-- Embedded data URIs are not included in this browser.
+- Search embedded SVG data URIs in the separate **SVG Data URIs** tab.
 
 **A large SVG is slow to preview**
 - Adjust the maximum inline SVG size under **Settings → Tools → SVG Toolkit**.
