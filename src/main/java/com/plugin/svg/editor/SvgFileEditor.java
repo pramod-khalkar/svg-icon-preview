@@ -907,7 +907,7 @@ public class SvgFileEditor implements FileEditor {
 
         String editedSvg = getEditedSvg();
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
-        Document sourceDocument = documentManager.getDocument(sourceFile);
+        Document sourceDocument = ReadAction.compute(() -> documentManager.getDocument(sourceFile));
         if (sourceDocument == null) {
             showSaveError("Unable to open the original SVG file for writing.");
             return;
