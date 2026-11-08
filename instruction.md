@@ -16,18 +16,23 @@ This repository contains an IntelliJ Platform plugin named **SVG Toolkit**. It d
 
 ## Architecture and important files
 
-- `SvgIconLineMarkerProvider` scans leaf PSI elements for `data:image/svg+xml` URIs, avoids duplicate markers per line, decodes payloads, and opens the preview on gutter-icon click. It is registered through `plugin.xml`.
-- `SvgDataUriUtil` handles payload normalization and standard/URL-safe Base64, URL-encoded, and plain SVG decoding.
-- `SvgRenderer` rasterizes SVG to `BufferedImage` using Apache Batik.
-- `SvgImageCache` is the bounded LRU cache used for rendered gutter images.
-- `SvgDynamicIcon` displays a placeholder and can update the gutter icon after background rendering.
-- `SvgVirtualFile` and `SvgVirtualFileSystem` represent an in-memory preview file.
-- `SvgFileEditorProvider` accepts the synthetic `svg-preview-` files and creates `SvgFileEditor`. `SvgFileEditor` displays source and preview panes and groups save/export/copy actions in the preview toolbar's File menu.
-- `SvgVirtualFile` carries the original standalone source file and its original content for Save and external-change confirmation. Data-URI previews do not have a source file and only offer Save As/export/copy actions.
-- `SvgProjectBrowserToolWindowFactory` registers the **SVG Toolkit** tool window. `SvgProjectBrowserPanel` provides tabs for standalone `.svg` browsing and embedded SVG data URI search, with asynchronously rendered/cached thumbnails. The embedded search uses `SvgEmbeddedSearch` to find valid SVG URIs in non-binary files under project content, then supports opening the SVG preview or navigating to its source location.
-- `OpenSvgWithToolkitAction` adds the Project View context-menu action for selected `.svg` files. Keep its update logic limited to actual SVG selections, use the EDT for Project View selection access, and use read actions when resolving PSI.
-- `SvgToolkitSettings`, `SvgToolkitSettingsConfigurable`, and `SvgToolkitSettingsPanel` implement the configurable inline-size threshold.
-- `SvgPreviewEditorTab`, `SvgPreviewDialog`, and `SvgPreviewToolWindow` are additional/older UI implementations. Trace registrations and call sites before changing or removing them; the registered editor-provider flow currently creates `SvgFileEditor`.
+- `action/SvgIconLineMarkerProvider` scans leaf PSI elements for `data:image/svg+xml` URIs, avoids duplicate markers per line, decodes payloads, and opens the preview on gutter-icon click. It is registered through `plugin.xml`.
+- `data/SvgDataUriUtil` handles payload normalization and standard/URL-safe Base64, URL-encoded, and plain SVG decoding; `data/SvgXmlFormatter` formats SVG XML.
+- `render/SvgRenderer` rasterizes SVG to `BufferedImage` using Apache Batik. `render/SvgImageCache` is the bounded LRU cache used for rendered gutter images, and `render/SvgDynamicIcon` updates gutter icons after background rendering.
+- `editor/SvgVirtualFile` and `editor/SvgVirtualFileSystem` represent an in-memory preview file. `editor/SvgFileEditorProvider` accepts synthetic preview files and creates `SvgFileEditor`, which displays source and preview panes, dimensions, and save/export/copy actions.
+- `SvgVirtualFile` carries the original standalone source file and its original content for Save and external-change confirmation. Data-URI previews do not have a source file and only offer Save As/export/copy actions. `editor/SvgDimensions` parses and formats SVG dimensions for the editor.
+- `browser/SvgProjectBrowserToolWindowFactory` registers the **SVG Toolkit** tool window. `browser/SvgProjectBrowserPanel` provides tabs for standalone `.svg` browsing and SVG data URI search, with asynchronously rendered/cached thumbnails. `browser/ProjectSvgFileScanner` and `browser/EmbeddedSvgScanner` isolate project traversal; the latter uses `data/SvgEmbeddedSearch` to find valid SVG URIs in non-binary files under project content, then supports opening the SVG preview or navigating to its source location. `browser/SvgThumbnailCache` bounds thumbnail and dimension metadata.
+- `action/OpenSvgWithToolkitAction` adds the Project View context-menu action for selected `.svg` files. Keep its update logic limited to actual SVG selections, use the EDT for Project View selection access, and use read actions when resolving PSI.
+- `settings/SvgToolkitSettings`, `settings/SvgToolkitSettingsConfigurable`, and `settings/SvgToolkitSettingsPanel` implement the configurable inline-size threshold.
+- `editor/SvgPreviewEditorTab`, `editor/SvgPreviewDialog`, and `editor/SvgPreviewToolWindow` are additional/older UI implementations. Trace registrations and call sites before changing or removing them; the registered editor-provider flow currently creates `SvgFileEditor`.
+
+## Structure for new code
+
+- Place production classes in the existing feature package that owns the responsibility: `action`, `browser`, `data`, `editor`, `render`, or `settings` under `com.plugin.svg`. Do not add new classes directly to the root `com.plugin.svg` package. Add a new subpackage only for a clearly distinct responsibility that does not fit the existing boundaries.
+- Keep responsibilities cohesive. Separate UI, project scanning, SVG data handling, rendering, and caching when doing so makes ownership clearer; reuse existing implementations rather than duplicating logic. Prefer a small focused class over growing an unrelated class, but avoid speculative abstractions or splitting code without a concrete benefit.
+- Apply SOLID principles pragmatically: each class should have one clear responsibility; additions should extend behavior without destabilizing existing flows; implementations should remain substitutable for their abstractions; interfaces and dependencies should stay focused; and abstractions should be introduced when they improve testability or reduce coupling. Do not add interfaces, layers, or patterns without a concrete need.
+- Place tests under the matching package in `src/test/java/com/plugin/svg/` (for example, `browser` production code has tests in `browser`). Keep test package structure aligned when moving production classes.
+- Before adding an extension, service, or configurable, check existing implementations and registrations; update `plugin.xml` and tests as appropriate. Preserve the established IntelliJ threading and lifecycle rules for any new code.
 
 ## Development workflow
 

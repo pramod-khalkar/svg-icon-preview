@@ -24,20 +24,20 @@
     <depends>com.intellij.modules.platform</depends>
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="SVG Toolkit" displayType="BALLOON"/>
-        <codeInsight.lineMarkerProvider implementationClass="com.plugin.svg.SvgIconLineMarkerProvider" />
+        <codeInsight.lineMarkerProvider implementationClass="com.plugin.svg.action.SvgIconLineMarkerProvider" />
         <applicationConfigurable groupId="tools" displayName="SVG Toolkit"
                                  id="preferences.svgtoolkit"
-                                 instance="com.plugin.svg.SvgToolkitSettingsConfigurable"/>
-        <applicationService serviceInterface="com.plugin.svg.SvgToolkitSettings"
-                           serviceImplementation="com.plugin.svg.SvgToolkitSettings"/>
-        <fileEditorProvider implementation="com.plugin.svg.SvgFileEditorProvider"/>
+                                 instance="com.plugin.svg.settings.SvgToolkitSettingsConfigurable"/>
+        <applicationService serviceInterface="com.plugin.svg.settings.SvgToolkitSettings"
+                           serviceImplementation="com.plugin.svg.settings.SvgToolkitSettings"/>
+        <fileEditorProvider implementation="com.plugin.svg.editor.SvgFileEditorProvider"/>
         <toolWindow id="SVG Toolkit" anchor="right"
-                    factoryClass="com.plugin.svg.SvgProjectBrowserToolWindowFactory"
+                    factoryClass="com.plugin.svg.browser.SvgProjectBrowserToolWindowFactory"
                     icon="/icons/svgToolkitToolWindow.svg"/>
     </extensions>
     <actions>
         <action id="com.plugin.svg.OpenSvgWithToolkit"
-                class="com.plugin.svg.OpenSvgWithToolkitAction"
+                class="com.plugin.svg.action.OpenSvgWithToolkitAction"
                 text="Open with SVG Toolkit"
                 description="Open this SVG file in the SVG Toolkit preview editor">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>

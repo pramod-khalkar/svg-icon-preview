@@ -177,17 +177,12 @@ To launch a sandbox IDE with the plugin:
 
 ```text
 src/main/java/com/plugin/svg/
-  SvgIconLineMarkerProvider.java       Detects embedded SVG data URIs
-  SvgDataUriUtil.java                  Decodes and encodes SVG data URIs
-  SvgRenderer.java                     Renders SVG with Apache Batik
-  SvgImageCache.java                   Bounded cache for rendered gutter icons
-  SvgFileEditor.java                   Source editor, preview, and file actions
-  SvgVirtualFile.java                  In-memory file used for preview tabs
-  OpenSvgWithToolkitAction.java        Project View context-menu action
-  SvgEmbeddedSearch.java               Finds SVG data URIs and source locations
-  SvgProjectBrowserPanel.java          Searchable project SVG browser
-  SvgProjectBrowserToolWindowFactory.java
-                                      Registers the project browser tool window
+  action/                              Gutter provider and Project View action
+  browser/                             Project browser, scanners, and thumbnail cache
+  data/                                SVG data URI and XML formatting utilities
+  editor/                              Preview editor, virtual files, and dimensions
+  render/                              SVG renderer, image cache, and dynamic icon
+  settings/                            Plugin settings UI and persistent state
 
 src/main/resources/
   META-INF/plugin.xml                  Plugin metadata and extension registration
