@@ -79,7 +79,8 @@ tab's refresh button to rescan after project changes.
 ## Installation
 
 In the IDE, open **Settings/Preferences → Plugins → Marketplace**, search for
-**SVG Toolkit**, install it, and restart the IDE.
+**SVG Toolkit**, and install it. IntelliJ will prompt you to restart the IDE to
+finish installing, updating, or uninstalling the plugin.
 
 To install a release ZIP, use **Settings/Preferences → Plugins → Install Plugin
 from Disk…**.
