@@ -40,6 +40,13 @@ releases. Future versions and scopes are provisional until a release is planned.
 - Add matching light/dark IntelliJ-style icons for the Project View action and
   tool window.
 
+## Implemented but not yet released
+### Project-wide embedded SVG search
+- Search non-binary files in the IntelliJ project content scope for valid SVG data URIs.
+- Show thumbnails, project-relative file paths, line numbers, and source snippets.
+- Open a match in the existing SVG editor or navigate to its source line.
+- Keep this work out of released-version notes until the next release is prepared.
+
 ## Proposed future releases
 
 ### 1.3.0 — Batch raster export
@@ -50,11 +57,6 @@ Support workflows that need raster assets at multiple sizes.
 
 **Acceptance:** Each selected SVG produces the expected PNG sizes and existing
 files are handled with an explicit user choice.
-
-### 1.4.0 — Project-wide embedded SVG search
-Find SVG data URIs across project source files in addition to standalone assets.
-- Show file and location for each match.
-- Open a match in the existing preview/editor.
 
 ### 1.5.0 — SVG diagnostics
 Help users understand why an SVG may render or behave unexpectedly.

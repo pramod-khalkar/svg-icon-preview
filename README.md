@@ -8,6 +8,9 @@ an editor and project browser for standalone SVG files.
 **IDE compatibility:** IntelliJ Platform 2023.1 and later
 **Runtime:** Java 17+
 
+The project-wide embedded SVG search described below is implemented in the
+current working tree but is not part of the 1.2.0 release.
+
 ## Features
 
 ### Preview SVG data URIs in code
@@ -22,19 +25,27 @@ an editor and project browser for standalone SVG files.
 
 ### Browse and open project SVG files
 
-- Open **View → Tool Windows → SVG Toolkit** to search standalone `.svg` files
-  in the current project.
-- Filter by filename or folder path; use the refresh button to rescan.
+- Open **View → Tool Windows → SVG Toolkit** and choose the **SVG Files** tab
+  to search standalone `.svg` files in the current project.
+- Filter SVG files by filename or folder path; use the refresh button to rescan.
 - Browse thumbnails, file sizes, and intrinsic image dimensions when available.
   The displayed path is relative to the project root; hover over it for the
   absolute path.
 - Double-click a result or select it and press Enter to open it in the SVG
-  Toolkit editor.
+  Toolkit editor. Reopening the same file selects its existing preview tab.
 - Alternatively, right-click an `.svg` file in the Project view and choose
   **Open with SVG Toolkit**.
 
-The browser indexes standalone `.svg` files only; it does not search for
-embedded SVG data URIs.
+### Project-wide embedded SVG data URI search (not yet released)
+
+Choose the **SVG Data URIs** tab to search project text files for
+supported `data:image/svg+xml` URIs. Each result shows a rendered thumbnail,
+project-relative path, a clearly labeled **Line** number beside the path, and
+source snippet. Double-click a result or select **Preview** to open the SVG
+editor; reopening the same data URI selects its existing preview tab.
+**Open Source** navigates to the matching source line. The search follows
+IntelliJ project content scope and exclusions and skips binary files. Use the
+tab's refresh button to rescan after project changes.
 
 ### Edit and preview
 
@@ -97,13 +108,18 @@ from Disk…**.
 Choose either way to open an existing `.svg` file:
 
 - In the Project view, right-click the file and select **Open with SVG Toolkit**.
-- Open **View → Tool Windows → SVG Toolkit**, search by filename or folder,
-  then double-click a result or select it and press Enter.
+- Open **View → Tool Windows → SVG Toolkit** and use the **SVG Files** tab to
+  search by filename or folder, then double-click a result or select it and
+  press Enter.
 
 The browser lists standalone project `.svg` files, with a thumbnail, file size,
 dimensions when readable, and a project-relative path. Hover over the path to
-see the absolute path. Use Refresh after adding or moving files. The browser
-does not index SVG data URIs embedded in source.
+see the absolute path. Use Refresh after adding or moving files.
+
+To find an embedded URI, open the **SVG Data URIs** tab. Each result
+includes a thumbnail. Select one and choose **Preview** to open its SVG in the
+editor (repeated selections reuse the open tab), or **Open Source** to jump to
+its file and line. The **Line** badge appears beside the file path.
 
 ### Edit, save, export, and copy
 
@@ -167,6 +183,7 @@ src/main/java/com/plugin/svg/
   SvgFileEditor.java                   Source editor, preview, and file actions
   SvgVirtualFile.java                  In-memory file used for preview tabs
   OpenSvgWithToolkitAction.java        Project View context-menu action
+  SvgEmbeddedSearch.java               Finds SVG data URIs and source locations
   SvgProjectBrowserPanel.java          Searchable project SVG browser
   SvgProjectBrowserToolWindowFactory.java
                                       Registers the project browser tool window

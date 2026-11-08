@@ -10,7 +10,7 @@
         <ul>
             <li><b>Embedded SVG Detection</b> - Finds <code>data:image/svg+xml</code> URIs in text-based files and displays gutter previews</li>
             <li><b>Multiple URI Encodings</b> - Decodes standard and URL-safe Base64, URL-encoded, and plain SVG data URIs, including missing Base64 padding</li>
-            <li><b>Project SVG Browser</b> - Search standalone <code>.svg</code> files by name or folder; browse thumbnails, file sizes, dimensions, and project-relative paths</li>
+            <li><b>Project SVG Browser</b> - Search standalone <code>.svg</code> files and embedded SVG data URIs in project text files; view rendered thumbnails, file sizes, dimensions, source locations, and project-relative paths</li>
             <li><b>Open Existing SVGs</b> - Open a standalone SVG from the Project View context menu or the project browser</li>
             <li><b>Source Editor and Live Preview</b> - Edit formatted SVG source and see a debounced preview without automatically modifying the original</li>
             <li><b>Save and Export</b> - Save changes to an opened standalone SVG, save a new SVG or PNG, or copy the preview as PNG or the SVG as a Base64 data URI</li>
@@ -18,7 +18,7 @@
             <li><b>Background Rendering and Caching</b> - Render off the UI thread and cache gutter images to keep editing responsive</li>
             <li><b>Configurable Inline Size</b> - Set the size threshold for inline SVG previews (default 200 KB)</li>
         </ul>
-        <p>The project browser searches standalone SVG files; it does not index embedded data URIs.</p>
+        <p>Embedded SVG search follows project content scope and exclusions and skips binary files.</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>

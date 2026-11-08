@@ -48,4 +48,26 @@ public class OpenSvgWithToolkitActionTest {
         assertSame(svg, OpenSvgWithToolkitAction.selectedSvgFromItem(svg));
         assertNull(OpenSvgWithToolkitAction.selectedSvgFromItem(nonSvg));
     }
+
+    @Test
+    public void reusesOpenPreviewForTheSameSourceFile() {
+        LightVirtualFile source = new LightVirtualFile("icon.svg");
+        SvgVirtualFile preview = new SvgVirtualFile(
+                "svg-preview-icon.svg-1", "<svg/>", "data-uri", null,
+                "icon.svg", source, "<svg/>");
+
+        assertSame(preview, OpenSvgWithToolkitAction.findOpenPreview(
+                new VirtualFile[]{new LightVirtualFile("other.svg"), preview}, source));
+    }
+
+    @Test
+    public void doesNotMatchPreviewForAnotherSourceFile() {
+        LightVirtualFile source = new LightVirtualFile("icon.svg");
+        LightVirtualFile otherSource = new LightVirtualFile("other.svg");
+        SvgVirtualFile preview = new SvgVirtualFile(
+                "svg-preview-other.svg-1", "<svg/>", "data-uri", null,
+                "other.svg", otherSource, "<svg/>");
+
+        assertNull(OpenSvgWithToolkitAction.findOpenPreview(new VirtualFile[]{preview}, source));
+    }
 }

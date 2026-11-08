@@ -127,6 +127,21 @@ public class OpenSvgWithToolkitAction extends DumbAwareAction {
         return null;
     }
 
+    static VirtualFile findOpenPreview(VirtualFile[] openFiles, VirtualFile sourceFile) {
+        if (openFiles == null || sourceFile == null) {
+            return null;
+        }
+        for (VirtualFile openFile : openFiles) {
+            if (openFile instanceof SvgVirtualFile previewFile) {
+                VirtualFile previewSource = previewFile.getSourceFile();
+                if (previewSource != null && previewSource.getUrl().equals(sourceFile.getUrl())) {
+                    return openFile;
+                }
+            }
+        }
+        return null;
+    }
+
     static VirtualFile selectedSvgFromItem(Object item) {
         if (item instanceof VirtualFile file) {
             return isSvgFile(file) ? file : null;
@@ -190,7 +205,9 @@ public class OpenSvgWithToolkitAction extends DumbAwareAction {
                     previewName, svgText, source, preview, file.getName(), file, source);
             ApplicationManager.getApplication().invokeLater(() -> {
                 if (!project.isDisposed()) {
-                    FileEditorManager.getInstance(project).openFile(previewFile, true);
+                    FileEditorManager editorManager = FileEditorManager.getInstance(project);
+                    VirtualFile existingPreview = findOpenPreview(editorManager.getOpenFiles(), file);
+                    editorManager.openFile(existingPreview == null ? previewFile : existingPreview, true);
                 }
             });
         } catch (IOException | RuntimeException exception) {

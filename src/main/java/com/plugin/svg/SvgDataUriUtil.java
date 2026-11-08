@@ -99,6 +99,9 @@ public class SvgDataUriUtil {
     }
 
     private static String tryBase64Decoders(String s) {
+        if (s == null) {
+            return null;
+        }
         try {
             byte[] bytes = Base64.getDecoder().decode(fixPadding(s));
             return new String(bytes, StandardCharsets.UTF_8);
