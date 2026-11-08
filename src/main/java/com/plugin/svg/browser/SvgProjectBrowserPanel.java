@@ -8,7 +8,6 @@ import com.plugin.svg.render.SvgRenderer;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -16,6 +15,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -410,7 +410,7 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
             ImageIcon thumbnail = null;
             String dimensions = "Dimensions unavailable";
             try {
-                String source = ReadAction.compute(() -> {
+                String source = ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
                     try {
                         return new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
                     } catch (IOException exception) {

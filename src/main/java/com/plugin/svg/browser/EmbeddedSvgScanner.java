@@ -1,12 +1,12 @@
 package com.plugin.svg.browser;
 
-import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.plugin.svg.data.SvgDataUriUtil;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -22,7 +22,7 @@ final class EmbeddedSvgScanner {
 
     static Result scan(Project project, ProgressIndicator indicator, AtomicLong generation, long expectedGeneration,
                        Consumer<String> progressUpdater, BiConsumer<String, IOException> unreadableFileLogger) {
-        List<VirtualFile> files = ReadAction.compute(() -> {
+        List<VirtualFile> files = ApplicationManager.getApplication().runReadAction((Computable<List<VirtualFile>>) () -> {
             List<VirtualFile> contentFiles = new ArrayList<>();
             ProjectFileIndex.getInstance(project).iterateContent(file -> {
                 checkCurrent(indicator, generation, expectedGeneration);
@@ -42,7 +42,8 @@ final class EmbeddedSvgScanner {
             }
             progressUpdater.accept(file.getPath());
             try {
-                String source = ReadAction.compute(() ->
+                String source = ApplicationManager.getApplication()
+                        .runReadAction((ThrowableComputable<String, IOException>) () ->
                         new String(file.contentsToByteArray(), file.getCharset()));
                 if (source.toLowerCase(Locale.ROOT).contains("data:image/svg")) {
                     for (SvgEmbeddedSearch.Match match : SvgEmbeddedSearch.findMatches(file.getPath(), source)) {

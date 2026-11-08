@@ -1,11 +1,10 @@
 package com.plugin.svg.editor;
 
 import com.plugin.svg.data.SvgXmlFormatter;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
-import com.intellij.testFramework.LightVirtualFileBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,6 +101,6 @@ public class SvgVirtualFile extends VirtualFile {
 
     @Override
     public @NotNull FileType getFileType() {
-        return StdFileTypes.XML;
+        return XmlFileType.INSTANCE;
     }
 }

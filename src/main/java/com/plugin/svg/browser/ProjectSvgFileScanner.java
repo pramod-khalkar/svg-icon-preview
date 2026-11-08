@@ -1,9 +1,10 @@
 package com.plugin.svg.browser;
 
-import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ final class ProjectSvgFileScanner {
     }
 
     static List<VirtualFile> scan(Project project, ProgressIndicator indicator) {
-        return ReadAction.compute(() -> {
+        return ApplicationManager.getApplication().runReadAction((Computable<List<VirtualFile>>) () -> {
             List<VirtualFile> files = new ArrayList<>();
             ProjectFileIndex.getInstance(project).iterateContent(file -> {
                 indicator.checkCanceled();

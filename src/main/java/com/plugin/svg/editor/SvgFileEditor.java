@@ -7,7 +7,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -17,6 +17,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -45,7 +46,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * File editor for viewing and exporting SVG previews.
  */
-public class SvgFileEditor implements FileEditor {
+public class SvgFileEditor implements FileEditor, Disposable {
     private static final String NOTIFICATION_GROUP_ID = "SVG Toolkit";
     private static final FileEditorState EMPTY_EDITOR_STATE = new FileEditorState() {
         @Override
@@ -146,7 +147,7 @@ public class SvgFileEditor implements FileEditor {
                 renderGeneration.incrementAndGet();
                 previewUpdateTimer.restart();
             }
-        });
+        }, this);
     }
 
     private void loadContentFromVirtualFile() {
@@ -907,13 +908,15 @@ public class SvgFileEditor implements FileEditor {
 
         String editedSvg = getEditedSvg();
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
-        Document sourceDocument = ReadAction.compute(() -> documentManager.getDocument(sourceFile));
+        Document sourceDocument = ApplicationManager.getApplication()
+                .runReadAction((Computable<Document>) () -> documentManager.getDocument(sourceFile));
         if (sourceDocument == null) {
             showSaveError("Unable to open the original SVG file for writing.");
             return;
         }
         String originalContent = previewFile.getOriginalSourceContent();
-        String currentSourceContent = ReadAction.compute(sourceDocument::getText);
+        String currentSourceContent = ApplicationManager.getApplication()
+                .runReadAction((Computable<String>) sourceDocument::getText);
         if (originalContent != null && !originalContent.equals(currentSourceContent)) {
             int choice = JOptionPane.showConfirmDialog(
                     SwingUtilities.getWindowAncestor(mainPanel),
@@ -986,7 +989,8 @@ public class SvgFileEditor implements FileEditor {
     }
 
     private String getEditedSvg() {
-        return ReadAction.compute(() -> svgEditor.getDocument().getText());
+        return ApplicationManager.getApplication()
+                .runReadAction((Computable<String>) () -> svgEditor.getDocument().getText());
     }
 
     private void exportAsPng() {

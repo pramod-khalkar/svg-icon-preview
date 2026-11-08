@@ -1,12 +1,11 @@
 package com.plugin.svg.settings;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Objects;
 
 /**
  * Settings UI for SVG Toolkit plugin.
@@ -17,7 +16,7 @@ public class SvgToolkitSettingsConfigurable implements Configurable {
     private final SvgToolkitSettings settings;
 
     public SvgToolkitSettingsConfigurable() {
-        this.settings = ServiceManager.getService(SvgToolkitSettings.class);
+        this.settings = ApplicationManager.getApplication().getService(SvgToolkitSettings.class);
     }
 
     @Nls(capitalization = Nls.Capitalization.Title)

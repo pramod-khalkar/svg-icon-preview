@@ -2,7 +2,9 @@ package com.plugin.svg.render;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
+import com.intellij.psi.PsiFile;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,10 +22,12 @@ public class SvgDynamicIcon implements Icon {
     private final int size;
     private final AtomicReference<BufferedImage> imageRef = new AtomicReference<>();
     private final Project project; // used to trigger repaint/reindex safely
+    private final PsiFile psiFile;
 
-    public SvgDynamicIcon(int size, Project project) {
+    public SvgDynamicIcon(int size, Project project, PsiFile psiFile) {
         this.size = size;
         this.project = project;
+        this.psiFile = psiFile;
     }
 
     public boolean hasImage() {
@@ -35,8 +39,10 @@ public class SvgDynamicIcon implements Icon {
         // Trigger UI refresh on EDT
         ApplicationManager.getApplication().invokeLater(() -> {
             try {
-                if (project != null) {
-                    DaemonCodeAnalyzer.getInstance(project).restart();
+                boolean valid = ApplicationManager.getApplication()
+                        .runReadAction((Computable<Boolean>) psiFile::isValid);
+                if (project != null && !project.isDisposed() && valid) {
+                    DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
                 }
             } catch (Exception e) {
                 // Avoid spamming logs

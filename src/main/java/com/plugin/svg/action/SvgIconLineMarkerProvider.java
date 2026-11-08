@@ -10,7 +10,6 @@ import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
@@ -84,7 +83,7 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
             return;
         }
 
-        ReadAction.run(() -> {
+        ApplicationManager.getApplication().runReadAction(() -> {
             // Scoped to this single pass only - guarantees at most one marker per (file, line)
             // for this call, without leaking state across highlighting passes.
             Set<String> seenLineKeys = new HashSet<>();
@@ -148,7 +147,7 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
 
             TextRange markerRange = new TextRange(matchStartInDoc, Math.min(matchStartInDoc + 1, matchEndInDoc));
             String sourceText = matcher.group(0);
-            LineMarkerInfo<?> info = buildMarker(element, markerRange, marker, payload, sourceText);
+            LineMarkerInfo<?> info = buildMarker(element, file, markerRange, marker, payload, sourceText);
             if (info != null) {
                 result.add(info);
             }
@@ -183,6 +182,7 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
     }
 
     private @Nullable LineMarkerInfo<?> buildMarker(@NotNull PsiElement element,
+                                                     @NotNull PsiFile file,
                                                      @NotNull TextRange markerRange,
                                                      @Nullable String marker,
                                                      @NotNull String payload,
@@ -202,7 +202,7 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
         }
 
         Project project = element.getProject();
-        SvgDynamicIcon dynamicIcon = new SvgDynamicIcon(GUTTER_ICON_SIZE, project);
+        SvgDynamicIcon dynamicIcon = new SvgDynamicIcon(GUTTER_ICON_SIZE, project, file);
         BufferedImage cached = imageCache.get(shortId);
         if (cached != null) {
             dynamicIcon.setImage(cached);
@@ -273,7 +273,9 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
                 ? "SVG Preview (large, " + (svgText.length() / 1024) + "KB) - Click to load preview"
                 : "SVG Preview - Click to open full preview";
 
-        return new LineMarkerInfo<>(element, markerRange, dynamicIcon, psi -> tooltipSupplier.get(), clickHandler, GutterIconRenderer.Alignment.LEFT);
+        return new LineMarkerInfo<>(element, markerRange, dynamicIcon,
+                psi -> tooltipSupplier.get(), clickHandler, GutterIconRenderer.Alignment.LEFT,
+                () -> "SVG preview");
     }
 
     private BufferedImage renderImageFromSvg(String svg, int width, int height) throws Exception {

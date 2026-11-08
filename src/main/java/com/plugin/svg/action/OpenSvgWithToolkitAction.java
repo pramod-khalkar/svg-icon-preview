@@ -11,11 +11,11 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -160,7 +160,7 @@ public class OpenSvgWithToolkitAction extends DumbAwareAction {
             return selectedSvgFromItem(node.getValue());
         }
         if (item instanceof PsiElement element) {
-            return ReadAction.compute(() -> {
+            return ApplicationManager.getApplication().runReadAction((Computable<VirtualFile>) () -> {
                 PsiFile psiFile = element instanceof PsiFile
                         ? (PsiFile) element
                         : element.getContainingFile();
