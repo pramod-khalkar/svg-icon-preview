@@ -1,7 +1,7 @@
 # SVG Toolkit Roadmap
 
-This roadmap tracks released work through 1.2.0 and the planned next release.
-Future versions and scopes remain provisional until scheduled.
+This roadmap tracks released work through 1.2.0, features implemented for 1.3.0,
+and future release ideas. Future scopes remain provisional until scheduled.
 
 ## Completed
 
@@ -42,17 +42,17 @@ Future versions and scopes remain provisional until scheduled.
 - Add matching light/dark IntelliJ-style icons for the Project View action and
   tool window.
 
+## Implemented but not yet released
+
+### 1.3.0 — Batch raster export
+- Select multiple standalone SVGs from the project browser and export PNGs at
+  one or more maximum-edge sizes, preserving each SVG's aspect ratio.
+- Save outputs directly in the chosen directory and include the output size in
+  each PNG filename; disambiguate duplicate source names with their folder paths.
+- Choose whether to replace or skip each existing file, apply either choice to
+  all existing outputs, monitor background progress, and receive a summary.
+
 ## Planned releases
-
-### 1.3.0 — Batch raster export (next planned release)
-Extend the existing project SVG browser and PNG export into a batch workflow.
-- Select multiple files in the project browser and export PNGs at one or more
-  chosen dimensions.
-- Let users choose an output directory and avoid silently overwriting files.
-
-**Acceptance:** Each selected SVG produces the expected PNG sizes and existing
-files are handled with an explicit user choice. Export runs off the UI thread
-and reports failures without silently skipping files.
 
 ### 1.4.0 — SVG diagnostics
 Help users understand why an SVG may render or behave unexpectedly.

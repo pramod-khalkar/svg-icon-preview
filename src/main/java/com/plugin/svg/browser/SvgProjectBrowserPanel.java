@@ -9,6 +9,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -31,9 +32,14 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 final class SvgProjectBrowserPanel extends JPanel implements Disposable {
@@ -45,6 +51,8 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
     private final JLabel statusLabel = new JLabel(" ");
     private final DefaultListModel<VirtualFile> listModel = new DefaultListModel<>();
     private final JList<VirtualFile> fileList = new JList<>(listModel);
+    private JButton exportPngButton;
+    private boolean exportInProgress;
     private final JTextField embeddedSearchField = new JTextField();
     private final JLabel embeddedStatusLabel = new JLabel(" ");
     private final DefaultListModel<SvgEmbeddedSearch.Match> embeddedListModel = new DefaultListModel<>();
@@ -64,13 +72,22 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
 
         searchField.setToolTipText("Filter project SVG files by name or folder");
         fileList.setCellRenderer(new SvgFileCellRenderer());
-        fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        fileList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         fileList.setFixedCellHeight(82);
         fileList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(event)) {
-                    openSelectedFile();
+                    int index = fileList.locationToIndex(event.getPoint());
+                    if (index >= 0) {
+                        Rectangle cellBounds = fileList.getCellBounds(index, index);
+                        if (cellBounds == null || !cellBounds.contains(event.getPoint())) {
+                            return;
+                        }
+                        VirtualFile file = listModel.get(index);
+                        fileList.setSelectedIndex(index);
+                        openSelectedFile(file);
+                    }
                 }
             }
         });
@@ -79,7 +96,10 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
         fileList.getActionMap().put("open-selected-svg", new AbstractAction() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent event) {
-                openSelectedFile();
+                int index = fileList.getLeadSelectionIndex();
+                if (index >= 0 && fileList.isSelectedIndex(index)) {
+                    openSelectedFile(listModel.get(index));
+                }
             }
         });
         searchField.getDocument().addDocumentListener(new DocumentListener() {
@@ -114,10 +134,22 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
         JPanel searchPanel = new JPanel(new BorderLayout(6, 0));
         searchPanel.add(searchField, BorderLayout.CENTER);
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.TRAILING, 4, 0));
+        exportPngButton = new JButton("Export PNG...");
+        exportPngButton.setToolTipText("Export selected SVG files as PNG images");
+        exportPngButton.setEnabled(false);
+        exportPngButton.addActionListener(event -> exportSelectedSvgFiles());
+        actions.add(exportPngButton);
         JButton refreshButton = new JButton(AllIcons.Actions.Refresh);
         refreshButton.setToolTipText("Refresh project SVG files");
         refreshButton.addActionListener(event -> refreshSvgFiles());
-        searchPanel.add(refreshButton, BorderLayout.EAST);
+        actions.add(refreshButton);
+        searchPanel.add(actions, BorderLayout.EAST);
+        fileList.addListSelectionListener(event -> {
+            if (!event.getValueIsAdjusting()) {
+                updateExportButtonState();
+            }
+        });
 
         JPanel header = new JPanel(new BorderLayout(0, 4));
         header.add(searchPanel, BorderLayout.NORTH);
@@ -307,13 +339,173 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
         statusLabel.setText(listModel.isEmpty()
                 ? (projectSvgFiles.isEmpty() ? "No SVG files found in this project" : "No matching SVG files")
                 : listModel.size() + (listModel.size() == 1 ? " SVG file" : " SVG files"));
+        updateExportButtonState();
     }
 
-    private void openSelectedFile() {
-        VirtualFile file = fileList.getSelectedValue();
+    private void openSelectedFile(VirtualFile file) {
         if (file != null && file.isValid()) {
             OpenSvgWithToolkitAction.openPreview(project, file);
         }
+    }
+
+    private void updateExportButtonState() {
+        if (exportPngButton != null) {
+            exportPngButton.setEnabled(!exportInProgress && !fileList.isSelectionEmpty());
+        }
+    }
+
+    private void exportSelectedSvgFiles() {
+        List<VirtualFile> selectedFiles = fileList.getSelectedValuesList().stream()
+                .filter(VirtualFile::isValid)
+                .toList();
+        if (selectedFiles.isEmpty()) {
+            return;
+        }
+
+        List<Integer> sizes = SvgBatchExportOptionsDialog.show(this);
+        if (sizes == null) {
+            return;
+        }
+
+        JFileChooser directoryChooser = new JFileChooser();
+        directoryChooser.setDialogTitle("Choose PNG export directory");
+        directoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        if (project.getBasePath() != null) {
+            directoryChooser.setCurrentDirectory(new java.io.File(project.getBasePath()));
+        }
+        if (directoryChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        List<SvgBatchPngExporter.ExportJob> jobs;
+        try {
+            jobs = SvgBatchPngExporter.createPlan(selectedFiles, sizes, project.getBasePath(),
+                    Path.of(directoryChooser.getSelectedFile().getAbsolutePath()));
+        } catch (IllegalArgumentException exception) {
+            JOptionPane.showMessageDialog(this, exception.getMessage(),
+                    "Unable to prepare PNG export", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Map<Path, SvgBatchPngExporter.ExistingFilesPolicy> existingFilesPolicies =
+                chooseExistingFilesPolicies(jobs);
+        if (existingFilesPolicies == null) {
+            return;
+        }
+
+        exportInProgress = true;
+        updateExportButtonState();
+        ProgressManager.getInstance().run(
+                new Task.Backgroundable(project, "Exporting SVG files as PNG", true) {
+                    @Override
+                    public void run(@NotNull ProgressIndicator indicator) {
+                        try {
+                            SvgBatchPngExporter.ExportResult result =
+                                    SvgBatchPngExporter.export(jobs, existingFilesPolicies, indicator);
+                            ApplicationManager.getApplication().invokeLater(() -> {
+                                if (!disposed && !project.isDisposed()) {
+                                    showBatchExportResult(result);
+                                }
+                            });
+                        } catch (ProcessCanceledException exception) {
+                            ApplicationManager.getApplication().invokeLater(() -> {
+                                if (!disposed && !project.isDisposed()) {
+                                    NotificationGroupManager.getInstance()
+                                            .getNotificationGroup("SVG Toolkit")
+                                            .createNotification(
+                                                    "Batch PNG export canceled. Completed files were kept.",
+                                                    NotificationType.INFORMATION)
+                                            .notify(project);
+                                }
+                            });
+                            throw exception;
+                        } catch (RuntimeException exception) {
+                            LOG.error("Batch PNG export failed", exception);
+                            ApplicationManager.getApplication().invokeLater(() -> {
+                                if (!disposed && !project.isDisposed()) {
+                                    NotificationGroupManager.getInstance()
+                                            .getNotificationGroup("SVG Toolkit")
+                                            .createNotification(
+                                                    "Batch PNG export failed: " + exception.getMessage(),
+                                                    NotificationType.ERROR)
+                                            .notify(project);
+                                }
+                            });
+                        } finally {
+                            ApplicationManager.getApplication().invokeLater(() -> {
+                                if (!disposed) {
+                                    exportInProgress = false;
+                                    updateExportButtonState();
+                                }
+                            });
+                        }
+                    }
+                });
+    }
+
+    private Map<Path, SvgBatchPngExporter.ExistingFilesPolicy> chooseExistingFilesPolicies(
+            List<SvgBatchPngExporter.ExportJob> jobs) {
+        Set<Path> existingOutputs = new HashSet<>(SvgBatchPngExporter.findExistingOutputs(jobs));
+        Map<Path, SvgBatchPngExporter.ExistingFilesPolicy> policies = new HashMap<>();
+        Object[] choices = {"Replace", "Skip", "Replace All", "Skip All", "Cancel Export"};
+
+        for (SvgBatchPngExporter.ExportJob job : jobs) {
+            Path destination = job.getDestination();
+            if (!existingOutputs.contains(destination)) {
+                continue;
+            }
+
+            Object[] message = {
+                    "A PNG file already exists:",
+                    "Output: " + destination,
+                    "Source: " + job.getSource().getPath() + " (" + job.getMaxDimension() + " px)"
+            };
+            int choice = JOptionPane.showOptionDialog(this, message, "Existing PNG File",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+                    null, choices, choices[1]);
+            switch (choice) {
+                case 0 -> policies.put(destination, SvgBatchPngExporter.ExistingFilesPolicy.REPLACE);
+                case 1 -> policies.put(destination, SvgBatchPngExporter.ExistingFilesPolicy.SKIP);
+                case 2 -> {
+                    return applyPolicyToAllExistingOutputs(
+                            jobs, existingOutputs, SvgBatchPngExporter.ExistingFilesPolicy.REPLACE);
+                }
+                case 3 -> {
+                    return applyPolicyToAllExistingOutputs(
+                            jobs, existingOutputs, SvgBatchPngExporter.ExistingFilesPolicy.SKIP);
+                }
+                default -> {
+                    return null;
+                }
+            }
+        }
+        return Map.copyOf(policies);
+    }
+
+    private Map<Path, SvgBatchPngExporter.ExistingFilesPolicy> applyPolicyToAllExistingOutputs(
+            List<SvgBatchPngExporter.ExportJob> jobs, Set<Path> existingOutputs,
+            SvgBatchPngExporter.ExistingFilesPolicy policy) {
+        Map<Path, SvgBatchPngExporter.ExistingFilesPolicy> policies = new HashMap<>();
+        for (SvgBatchPngExporter.ExportJob job : jobs) {
+            if (existingOutputs.contains(job.getDestination())) {
+                policies.put(job.getDestination(), policy);
+            }
+        }
+        return Map.copyOf(policies);
+    }
+
+    private void showBatchExportResult(SvgBatchPngExporter.ExportResult result) {
+        for (String failure : result.getFailures()) {
+            LOG.warn("Batch PNG export failed: " + failure);
+        }
+        String message = result.getExportedCount() + " PNG file(s) exported; "
+                + result.getSkippedCount() + " skipped; "
+                + result.getFailures().size() + " failed.";
+        NotificationType type = result.getFailures().isEmpty()
+                ? NotificationType.INFORMATION : NotificationType.WARNING;
+        NotificationGroupManager.getInstance().getNotificationGroup("SVG Toolkit")
+                .createNotification(message, type)
+                .notify(project);
     }
 
     private void openSelectedEmbeddedPreview() {

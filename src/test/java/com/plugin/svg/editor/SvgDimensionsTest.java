@@ -2,6 +2,7 @@ package com.plugin.svg.editor;
 
 import org.junit.Test;
 
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 
@@ -42,6 +43,19 @@ public class SvgDimensionsTest {
         assertNull(SvgDimensions.formatSvgDimensions("not SVG"));
         assertNull(SvgDimensions.formatSvgDimensions("<svg width=\"auto\" height=\"0\"></svg>"));
         assertNull(SvgDimensions.formatSvgDimensions("<svg viewBox=\"0 0 0 10\"></svg>"));
+    }
+
+    @Test
+    public void scalesRasterDimensionsWithinMaximumAndPreservesAspectRatio() {
+        assertEquals(new Dimension(64, 32),
+                SvgDimensions.getRasterDimensions("<svg width=\"40\" height=\"20\"/>", 64));
+        assertEquals(new Dimension(48, 32),
+                SvgDimensions.getRasterDimensions("<svg viewBox=\"0 0 24 16\"/>", 48));
+    }
+
+    @Test
+    public void usesSquareOutputWhenSvgHasNoIntrinsicDimensions() {
+        assertEquals(new Dimension(48, 48), SvgDimensions.getRasterDimensions("<svg/>", 48));
     }
 
     @Test

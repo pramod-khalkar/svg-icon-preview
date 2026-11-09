@@ -72,6 +72,8 @@ an editor and project browser for standalone SVG files.
 - Save changes to standalone SVG files with a check for external edits, or save
   a new SVG. Edits to data-URI previews remain local to the preview.
 - Export as PNG or copy the preview as PNG or the SVG as a Base64 data URI.
+- **Planned for 1.3.0:** Select multiple project SVGs to batch-export PNGs at one
+  or more maximum-edge sizes while preserving aspect ratio.
 
 ### Preview controls and performance
 
@@ -123,6 +125,19 @@ after adding or moving files.
 To find an embedded URI, open **SVG Data URIs**. Select a result and choose
 **Preview** to open it in the editor or **Open Source** to jump to its file and
 line. Reopening an already-previewed item selects its existing tab.
+
+### Batch-export project SVGs (planned for 1.3.0)
+
+1. In the **SVG Files** tab, select multiple files and choose **Export PNG...**.
+2. Choose one or more preset sizes or enter custom maximum-edge sizes from
+   1–4096 pixels as comma-separated values (for example, `256, 512`). Aspect
+   ratio is preserved.
+3. Choose an output directory. PNGs are saved directly in that folder and named
+   like `icon-64px.png`; duplicate SVG names are disambiguated with their folder
+   names.
+4. For existing PNGs, choose **Replace** or **Skip** per file, use **Replace
+   All** or **Skip All** for every existing output, or cancel the export.
+   Export runs in the background and reports skipped or failed files.
 
 ### Edit, save, export, and copy
 

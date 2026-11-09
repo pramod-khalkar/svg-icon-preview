@@ -2,6 +2,7 @@ package com.plugin.svg.editor;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
@@ -36,6 +37,20 @@ public final class SvgDimensions {
             return null;
         }
         return formatDimension(dimensions[0]) + " × " + formatDimension(dimensions[1]) + " px";
+    }
+
+    public static Dimension getRasterDimensions(@Nullable String source, int maxDimension) {
+        if (maxDimension < 1) {
+            throw new IllegalArgumentException("Maximum raster dimension must be positive");
+        }
+        double[] dimensions = getDimensions(source);
+        if (dimensions == null) {
+            return new Dimension(maxDimension, maxDimension);
+        }
+        double scale = maxDimension / Math.max(dimensions[0], dimensions[1]);
+        int width = Math.max(1, (int) Math.round(dimensions[0] * scale));
+        int height = Math.max(1, (int) Math.round(dimensions[1] * scale));
+        return new Dimension(width, height);
     }
 
     private static double[] getDimensions(@Nullable String source) {

@@ -42,6 +42,7 @@ final class SvgToolkitWhatsNewDialog extends DialogWrapper {
                 "<li>Search project files for SVG data URIs and inspect thumbnails, source snippets, and line numbers.</li>" +
                 "<li>Preview search results or jump directly to their source locations.</li>" +
                 "<li>Edit standalone SVGs, save changes to the original, or export SVG and PNG files.</li>" +
+                "<li>Select multiple project SVGs and batch-export them into one directory at multiple sizes, with collision-safe filenames and per-file or batch-wide existing-file choices.</li>" +
                 "<li>Reopening the same SVG reuses its existing SVG Toolkit preview tab.</li>" +
                 "</ul>" +
                 "<p>Open <b>View → Tool Windows → SVG Toolkit</b> to explore the browser. " +
