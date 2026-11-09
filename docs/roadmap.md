@@ -1,7 +1,7 @@
 # SVG Toolkit Roadmap
 
-This roadmap separates released work (through 1.2.0) from ideas for future
-releases. Future versions and scopes are provisional until a release is planned.
+This roadmap tracks released work through 1.2.0 and the planned next release.
+Future versions and scopes remain provisional until scheduled.
 
 ## Completed
 
@@ -36,29 +36,25 @@ releases. Future versions and scopes are provisional until a release is planned.
 - Add a **View → Tool Windows → SVG Toolkit** browser for standalone project
   `.svg` files, with search by name/folder, refresh, thumbnails, file size,
   dimensions, and project-relative paths (absolute path on hover).
+- Search project text files for SVG data URIs, with thumbnails, source snippets,
+  line numbers, source navigation, and preview actions.
 - Open browser results in the existing SVG Toolkit editor.
 - Add matching light/dark IntelliJ-style icons for the Project View action and
   tool window.
 
-## Implemented but not yet released
-### Project-wide embedded SVG search
-- Search non-binary files in the IntelliJ project content scope for valid SVG data URIs.
-- Show thumbnails, project-relative file paths, line numbers, and source snippets.
-- Open a match in the existing SVG editor or navigate to its source line.
-- Keep this work out of released-version notes until the next release is prepared.
+## Planned releases
 
-## Proposed future releases
-
-### 1.3.0 — Batch raster export
-Support workflows that need raster assets at multiple sizes.
+### 1.3.0 — Batch raster export (next planned release)
+Extend the existing project SVG browser and PNG export into a batch workflow.
 - Select multiple files in the project browser and export PNGs at one or more
   chosen dimensions.
 - Let users choose an output directory and avoid silently overwriting files.
 
 **Acceptance:** Each selected SVG produces the expected PNG sizes and existing
-files are handled with an explicit user choice.
+files are handled with an explicit user choice. Export runs off the UI thread
+and reports failures without silently skipping files.
 
-### 1.5.0 — SVG diagnostics
+### 1.4.0 — SVG diagnostics
 Help users understand why an SVG may render or behave unexpectedly.
 - Report actionable parse/render errors in the preview.
 - Flag selected compatibility concerns, such as missing dimensions or
@@ -67,7 +63,7 @@ Help users understand why an SVG may render or behave unexpectedly.
 **Acceptance:** Diagnostics identify the relevant issue, avoid blocking valid
 SVGs, and do not make external network requests to inspect resources.
 
-### 1.6.0 — Compare and theme preview
+### 1.5.0 — Compare and theme preview
 Make visual review of assets easier.
 - Compare two SVGs or before/after versions side by side or with an overlay.
 - Preview an SVG against common light, dark, and custom background colors.
@@ -87,8 +83,8 @@ and IDE tooling.
 
 ## Release process
 
-- Treat proposed version numbers and scopes as provisional until a release is
-  planned.
+- The next planned release is 1.3.0, focused on batch raster export. Keep the
+  latest stable version distinct from this development version until release.
 - For each release, synchronize `CHANGELOG.md`, `README.md`, `build.gradle.kts`,
   and the user-facing description in `src/main/resources/META-INF/plugin.xml`.
 - Keep changes focused and add tests for behavior changes.

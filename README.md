@@ -4,7 +4,8 @@ SVG Toolkit helps you find, preview, inspect, edit, and export SVG graphics in
 IntelliJ-based IDEs. It previews SVG data URIs directly from code and provides
 an editor and project browser for standalone SVG files.
 
-**Current version:** 1.2.0
+**Current stable version:** 1.2.0
+**Next planned release:** 1.3.0 — Batch raster export
 **IDE compatibility:** IntelliJ Platform 2023.1 and later
 **Runtime:** Java 17+
 
@@ -211,6 +212,6 @@ For plugin logs, use **Help → Show Log in Finder/Explorer** and inspect
 ## Plugin information
 
 - **Plugin ID:** `com.plugin.svg-icon-preview`
-- **Version:** 1.2.0
+- **Version:** 1.3.0 (next planned release)
 - **Author:** Pramod Khalkar
 - **License:** See `LICENSE`
