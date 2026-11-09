@@ -1,82 +1,89 @@
-# SVG Toolkit
+<h1 align="center">
+  <img src="src/main/resources/META-INF/pluginIcon.svg" alt="SVG Toolkit logo" width="96"><br>
+  SVG Toolkit
+</h1>
+
+<p align="center">
+  <a href="https://plugins.jetbrains.com/plugin/32452-svg-toolkit">
+    <img src="https://img.shields.io/jetbrains/plugin/v/32452?label=JetBrains%20Marketplace" alt="Get SVG Toolkit on JetBrains Marketplace">
+  </a>
+</p>
 
 SVG Toolkit helps you find, preview, inspect, edit, and export SVG graphics in
 IntelliJ-based IDEs. It previews SVG data URIs directly from code and provides
 an editor and project browser for standalone SVG files.
 
-**Current stable version:** 1.2.0
-**Next planned release:** 1.3.0 — Batch raster export
-**IDE compatibility:** IntelliJ Platform 2023.1 and later
-**Runtime:** Java 17+
+- **Current stable version:** 1.2.0
+- **Next planned release:** [1.3.0 — Batch raster export](docs/roadmap.md)
+- **IDE compatibility:** IntelliJ Platform 2023.1 and later
+- **Runtime:** Java 17+
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/editor-preview.png" alt="SVG editor showing editable source and rendered preview" width="420"><br>
+      <sub>SVG editor</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/project-browser-data-URIs.png" alt="Project SVG browser listing SVG files with thumbnails and dimensions" width="420"><br>
+      <sub>Project SVG browser</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/open-with-svg-editor-menu-option.png" alt="Embedded SVG data URI search results with previews and source locations" width="420"><br>
+      <sub>Embedded SVG search</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/glutter-icon-click-action.png" alt="Project View context menu with Open with SVG Toolkit action" width="420"><br>
+      <sub>Open a project SVG from the Project view</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/gutter-previews-json.png" alt="SVG gutter markers shown beside embedded SVG data URIs in a JSON file" width="420"><br>
+      <sub>Gutter previews in code</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/project-browser-svg-files.png" alt="SVG Toolkit project browser alongside an open project file" width="420"><br>
+      <sub>Browse project SVG assets</sub>
+    </td>
+  </tr>
+</table>
 
 ## Features
 
-### Preview SVG data URIs in code
+### Find and preview SVGs
 
-- Detects `data:image/svg+xml` URIs and displays a small gutter preview.
-- Click the gutter icon to open a dedicated SVG editor tab.
-- Supports text-based file types, including Java, JSON, JavaScript, TypeScript,
-  HTML, XML, YAML, and plain text.
-- Decodes standard and URL-safe Base64, missing Base64 padding, URL-encoded
-  payloads, and plain SVG data URIs.
-- Handles optional charset and Base64 markers and validates decoded SVG content.
+- Detect `data:image/svg+xml` URIs in text-based files and show gutter previews.
+  Supports Java, JSON, JavaScript/TypeScript, HTML, XML, YAML, and plain text;
+  decodes standard or URL-safe Base64 (including missing padding), URL-encoded,
+  and plain SVG payloads with optional charset/Base64 markers.
+- Browse standalone `.svg` files or search embedded SVG data URIs across
+  project text files. Results include thumbnails and file/source locations.
+- Search respects project content scope and exclusions and skips binary files.
 
-### Browse and open project SVG files
+### Edit and export
 
-- Open **View → Tool Windows → SVG Toolkit** and choose the **SVG Files** tab
-  to search standalone `.svg` files in the current project.
-- Filter SVG files by filename or folder path; use the refresh button to rescan.
-- Browse thumbnails, file sizes, and intrinsic image dimensions when available.
-  The displayed path is relative to the project root; hover over it for the
-  absolute path.
-- Double-click a result or select it and press Enter to open it in the SVG
-  Toolkit editor. Reopening the same file selects its existing preview tab.
-- Alternatively, right-click an `.svg` file in the Project view and choose
-  **Open with SVG Toolkit**.
+- Edit formatted SVG source with a live preview and split, source-only, or
+  preview-only layouts.
+- Save changes to standalone SVG files with a check for external edits, or save
+  a new SVG. Edits to data-URI previews remain local to the preview.
+- Export as PNG or copy the preview as PNG or the SVG as a Base64 data URI.
 
-### Project-wide SVG data URI search
+### Preview controls and performance
 
-Choose the **SVG Data URIs** tab to search project text files for
-supported `data:image/svg+xml` URIs. Search follows IntelliJ project content
-scope and exclusions and skips binary files. Each result shows a rendered thumbnail,
-project-relative path, a clearly labeled **Line** number beside the path, and
-source snippet. Double-click a result or select **Preview** to open the SVG
-editor; reopening the same data URI selects its existing preview tab.
-**Open Source** navigates to the matching source line. Use the tab's refresh
-button to rescan after project changes.
-
-### Edit and preview
-
-- View formatted SVG source beside the live preview, or switch to source-only
-  and preview-only layouts.
-- Edit source and see the preview update after a short debounce.
-- Edits in a data-URI preview remain local to the preview; the original source
-  code is not modified automatically.
-- For standalone SVG files, use **File → Save** to write edits to the original.
-  If the original changed after the preview was opened, the plugin asks before
-  overwriting it.
-- Use **File → Save As SVG…** to save the edited source as a separate file.
-
-### Preview controls and output
-
-- Zoom from 10% to 400%, fit the image, or view it at actual size.
-- Zoom shortcuts: `Ctrl` + `+` / `=`, `Ctrl` + `-`, and `Ctrl` + `0`.
-- Toggle checkerboard transparency and grid overlays.
-- The **File** menu provides **Save**, **Save As PNG…**, **Save As SVG…**,
-  **Copy as PNG**, and **Copy as Base64 data URI**. Save is enabled only for
-  changed standalone SVG previews.
-
-### Performance and settings
-
-- SVG decoding and rendering are performed off the UI thread.
-- Gutter previews use a bounded LRU image cache (up to 100 images / 50 MB).
-- Large inline SVGs can be rendered on demand.
-- Configure the maximum inline SVG size under **Settings → Tools → SVG Toolkit**
-  (10 KB–10 MB; default 200 KB).
+- Zoom, fit or view at actual size; toggle checkerboard transparency and grid.
+- Rendering runs off the UI thread. Gutter previews use a bounded image cache,
+  and large inline SVGs can be rendered on demand.
+- Configure the maximum inline SVG size in **Settings → Tools → SVG Toolkit**.
 
 ## Installation
 
-In the IDE, open **Settings/Preferences → Plugins → Marketplace**, search for
+Install **[SVG Toolkit from JetBrains Marketplace](https://plugins.jetbrains.com/plugin/32452-svg-toolkit)**,
+or in the IDE open **Settings/Preferences → Plugins → Marketplace**, search for
 **SVG Toolkit**, and install it. IntelliJ will prompt you to restart the IDE to
 finish installing, updating, or uninstalling the plugin. After installation or
 an update, SVG Toolkit shows a one-time notification when you open a project;
@@ -85,7 +92,7 @@ select **What's New** to view the release highlights.
 To install a release ZIP, use **Settings/Preferences → Plugins → Install Plugin
 from Disk…**.
 
-## How to use SVG Toolkit
+## Quick start
 
 ### Preview an SVG data URI from code
 
@@ -95,14 +102,10 @@ from Disk…**.
    String icon = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQi...";
    ```
 
-2. Find the SVG gutter icon beside the line and click it. SVG Toolkit opens a
-   preview editor tab. The plugin accepts standard or URL-safe Base64,
-   URL-encoded, and plain SVG data URIs, including supported optional charset
-   declarations.
-3. The source pane displays formatted SVG markup rather than the encoded URI.
-   Edit the markup and wait briefly for the preview to refresh.
-4. For a data-URI preview, edits stay local to the preview tab; the plugin does
-   not rewrite the source code automatically.
+2. Click the SVG gutter icon to open the preview editor. It displays formatted
+   SVG source beside the rendered image.
+3. Edit the source and wait for the preview to refresh. Changes stay in the
+   preview and do not rewrite the original code.
 
 ### Open a standalone SVG
 
@@ -113,28 +116,21 @@ Choose either way to open an existing `.svg` file:
   search by filename or folder, then double-click a result or select it and
   press Enter.
 
-The browser lists standalone project `.svg` files, with a thumbnail, file size,
-dimensions when readable, and a project-relative path. Hover over the path to
-see the absolute path. Use Refresh after adding or moving files.
+The browser shows thumbnails, file sizes, dimensions when readable, and
+project-relative paths. Hover over a path to see the absolute path. Use Refresh
+after adding or moving files.
 
-To find an embedded URI, open the **SVG Data URIs** tab. Each result
-includes a thumbnail. Select one and choose **Preview** to open its SVG in the
-editor (repeated selections reuse the open tab), or **Open Source** to jump to
-its file and line. The **Line** badge appears beside the file path.
+To find an embedded URI, open **SVG Data URIs**. Select a result and choose
+**Preview** to open it in the editor or **Open Source** to jump to its file and
+line. Reopening an already-previewed item selects its existing tab.
 
 ### Edit, save, export, and copy
 
-In the preview editor:
-
-- Edit the source pane to update the rendered preview.
-- For a standalone SVG, choose **File → Save** to write edits to the original.
-  If the file changed since opening the preview, confirm before overwriting.
-- Choose **File → Save As SVG…** to create a separate `.svg` file. For
-  data-URI previews, this is the way to save the edited SVG to disk.
-- Choose **File → Save As PNG…** to export the rendered preview.
-- Choose **File → Copy as PNG** to put the rendered image on the clipboard.
-- Choose **File → Copy as Base64 data URI** to copy the edited SVG as a URI for
-  manual use in code.
+For a standalone SVG, choose **File → Save** to update the original; if it
+changed since opening, confirm before overwriting. Choose **Save As SVG…** to
+create a separate file. For data-URI previews, edits remain local, so use Save
+As SVG to write them to disk. The File menu also provides **Save As PNG…**,
+**Copy as PNG**, and **Copy as Base64 data URI**.
 
 ### Adjust the preview
 
@@ -165,11 +161,7 @@ compatibility in `build.gradle.kts`.
 ```bash
 ./gradlew test
 ./gradlew build
-```
-
-To launch a sandbox IDE with the plugin:
-
-```bash
+./gradlew clean build && ./gradlew buildPlugin
 ./gradlew runIde
 ```
 
@@ -212,6 +204,5 @@ For plugin logs, use **Help → Show Log in Finder/Explorer** and inspect
 ## Plugin information
 
 - **Plugin ID:** `com.plugin.svg-icon-preview`
-- **Version:** 1.3.0 (next planned release)
 - **Author:** Pramod Khalkar
 - **License:** See `LICENSE`
