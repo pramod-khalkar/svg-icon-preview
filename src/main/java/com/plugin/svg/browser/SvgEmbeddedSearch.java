@@ -29,6 +29,8 @@ final class SvgEmbeddedSearch {
         Matcher matcher = DATA_URI_PATTERN.matcher(text);
         int lineNumber = 1;
         int previousOffset = 0;
+        int occurrenceOnLine = 0;
+        int occurrenceLine = 1;
         while (matcher.find()) {
             for (int i = previousOffset; i < matcher.start(); i++) {
                 if (text.charAt(i) == '\n') {
@@ -36,11 +38,16 @@ final class SvgEmbeddedSearch {
                 }
             }
             previousOffset = matcher.start();
+            if (lineNumber != occurrenceLine) {
+                occurrenceLine = lineNumber;
+                occurrenceOnLine = 0;
+            }
 
             String dataUri = matcher.group();
             String decodedSvg = SvgDataUriUtil.decodeSvgContent(dataUri);
             if (isSvg(decodedSvg)) {
-                matches.add(new Match(filePath, lineNumber, matcher.start(), dataUri,
+                occurrenceOnLine++;
+                matches.add(new Match(filePath, lineNumber, occurrenceOnLine, matcher.start(), dataUri,
                         getLineSnippet(text, matcher.start(), matcher.end())));
             }
         }
@@ -81,19 +88,26 @@ final class SvgEmbeddedSearch {
     static final class Match {
         private final String filePath;
         private final int lineNumber;
+        private final int occurrence;
         private final int offset;
         private final String dataUri;
         private final String snippet;
         private final VirtualFile sourceFile;
 
         Match(String filePath, int lineNumber, int offset, String dataUri, String snippet) {
-            this(filePath, lineNumber, offset, dataUri, snippet, null);
+            this(filePath, lineNumber, 1, offset, dataUri, snippet, null);
         }
 
-        private Match(String filePath, int lineNumber, int offset, String dataUri, String snippet,
-                      VirtualFile sourceFile) {
+        Match(String filePath, int lineNumber, int occurrence, int offset,
+              String dataUri, String snippet) {
+            this(filePath, lineNumber, occurrence, offset, dataUri, snippet, null);
+        }
+
+        private Match(String filePath, int lineNumber, int occurrence, int offset,
+                      String dataUri, String snippet, VirtualFile sourceFile) {
             this.filePath = filePath;
             this.lineNumber = lineNumber;
+            this.occurrence = occurrence;
             this.offset = offset;
             this.dataUri = dataUri;
             this.snippet = snippet;
@@ -106,6 +120,10 @@ final class SvgEmbeddedSearch {
 
         int getLineNumber() {
             return lineNumber;
+        }
+
+        int getOccurrence() {
+            return occurrence;
         }
 
         int getOffset() {
@@ -125,7 +143,7 @@ final class SvgEmbeddedSearch {
         }
 
         Match withSourceFile(VirtualFile file) {
-            return new Match(filePath, lineNumber, offset, dataUri, snippet, file);
+            return new Match(filePath, lineNumber, occurrence, offset, dataUri, snippet, file);
         }
     }
 }

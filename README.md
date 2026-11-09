@@ -11,7 +11,7 @@
 
 SVG Toolkit helps you find, preview, inspect, edit, and export SVG graphics in
 IntelliJ-based IDEs. It previews SVG data URIs directly from code and provides
-an editor and project browser for standalone SVG files.
+an editor and project browser for standalone SVG files and embedded data URIs.
 
 - **Current stable version:** 1.2.0
 - **Next planned release:** [1.3.0 — Batch raster export](docs/roadmap.md)
@@ -72,8 +72,9 @@ an editor and project browser for standalone SVG files.
 - Save changes to standalone SVG files with a check for external edits, or save
   a new SVG. Edits to data-URI previews remain local to the preview.
 - Export as PNG or copy the preview as PNG or the SVG as a Base64 data URI.
-- **Planned for 1.3.0:** Select multiple project SVGs to batch-export PNGs at one
-  or more maximum-edge sizes while preserving aspect ratio.
+- **Planned for 1.3.0:** Select multiple standalone SVGs or embedded SVG data URI
+  matches to batch-export PNGs at one or more maximum-edge sizes while preserving
+  aspect ratio.
 
 ### Preview controls and performance
 
@@ -126,15 +127,18 @@ To find an embedded URI, open **SVG Data URIs**. Select a result and choose
 **Preview** to open it in the editor or **Open Source** to jump to its file and
 line. Reopening an already-previewed item selects its existing tab.
 
-### Batch-export project SVGs (planned for 1.3.0)
+### Batch-export SVGs from the project browser (planned for 1.3.0)
 
 1. In the **SVG Files** tab, select multiple files and choose **Export PNG...**.
+   The **SVG Data URIs** tab also supports selecting and exporting multiple
+   embedded matches.
 2. Choose one or more preset sizes or enter custom maximum-edge sizes from
    1–4096 pixels as comma-separated values (for example, `256, 512`). Aspect
    ratio is preserved.
 3. Choose an output directory. PNGs are saved directly in that folder and named
-   like `icon-64px.png`; duplicate SVG names are disambiguated with their folder
-   names.
+   like `icon-64px.png`; duplicate standalone SVG names are disambiguated with
+   their folder names. Embedded matches use the source filename, line, and
+   occurrence number, such as `icons-line12-match2-64px.png`.
 4. For existing PNGs, choose **Replace** or **Skip** per file, use **Replace
    All** or **Skip All** for every existing output, or cancel the export.
    Export runs in the background and reports skipped or failed files.

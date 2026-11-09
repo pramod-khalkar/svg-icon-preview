@@ -8,6 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.plugin.svg.data.SvgDataUriUtil;
 import com.plugin.svg.editor.SvgDimensions;
 import com.plugin.svg.render.SvgRenderer;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.Dimension;
@@ -66,23 +67,8 @@ public final class SvgBatchPngExporter {
         if (files == null || files.isEmpty()) {
             throw new IllegalArgumentException("Select at least one SVG file.");
         }
-        if (maxDimensions == null || maxDimensions.isEmpty()) {
-            throw new IllegalArgumentException("Choose at least one output size.");
-        }
-        if (outputDirectory == null) {
-            throw new IllegalArgumentException("Choose an output directory.");
-        }
-
-        Set<Integer> dimensions = new TreeSet<>();
-        for (Integer maxDimension : maxDimensions) {
-            if (maxDimension == null || maxDimension < 1 || maxDimension > MAX_DIMENSION) {
-                throw new IllegalArgumentException(
-                        "Sizes must be between 1 and " + MAX_DIMENSION + " pixels.");
-            }
-            dimensions.add(maxDimension);
-        }
-
-        Path normalizedOutputDirectory = outputDirectory.toAbsolutePath().normalize();
+        Set<Integer> dimensions = validateDimensions(maxDimensions);
+        Path normalizedOutputDirectory = normalizeOutputDirectory(outputDirectory);
         List<Path> relativePaths = new ArrayList<>();
         for (VirtualFile file : files) {
             if (file == null || !ProjectSvgFileScanner.isSvgFile(file)) {
@@ -109,6 +95,77 @@ public final class SvgBatchPngExporter {
             }
         }
         return List.copyOf(jobs);
+    }
+
+    static List<ExportJob> createEmbeddedPlan(List<SvgEmbeddedSearch.Match> matches,
+                                              List<Integer> maxDimensions, String projectBasePath,
+                                              Path outputDirectory) {
+        if (matches == null || matches.isEmpty()) {
+            throw new IllegalArgumentException("Select at least one embedded SVG data URI.");
+        }
+        Set<Integer> dimensions = validateDimensions(maxDimensions);
+        Path normalizedOutputDirectory = normalizeOutputDirectory(outputDirectory);
+        List<Path> syntheticPaths = new ArrayList<>();
+        for (SvgEmbeddedSearch.Match match : matches) {
+            if (match == null || match.getFilePath() == null || match.getFilePath().isBlank()
+                    || match.getDataUri() == null) {
+                throw new IllegalArgumentException("An embedded SVG result is missing its source data.");
+            }
+            String fallbackName = fileNameFromPath(match.getFilePath());
+            Path relativePath = getProjectRelativePath(match.getFilePath(), fallbackName, projectBasePath);
+            String syntheticName = getBaseName(relativePath.getFileName().toString())
+                    + "-line" + match.getLineNumber() + "-match" + match.getOccurrence() + ".svg";
+            Path parent = relativePath.getParent();
+            syntheticPaths.add(parent == null ? Path.of(syntheticName) : parent.resolve(syntheticName));
+        }
+
+        Map<Integer, List<String>> outputNamesByDimension = new HashMap<>();
+        for (Integer maxDimension : dimensions) {
+            outputNamesByDimension.put(maxDimension, createOutputNames(syntheticPaths, maxDimension));
+        }
+
+        List<ExportJob> jobs = new ArrayList<>();
+        for (int matchIndex = 0; matchIndex < matches.size(); matchIndex++) {
+            SvgEmbeddedSearch.Match match = matches.get(matchIndex);
+            for (Integer maxDimension : dimensions) {
+                String outputName = outputNamesByDimension.get(maxDimension).get(matchIndex);
+                Path destination = normalizedOutputDirectory.resolve(outputName).normalize();
+                if (!destination.startsWith(normalizedOutputDirectory)) {
+                    throw new IllegalArgumentException("An output file is outside the selected directory.");
+                }
+                jobs.add(ExportJob.forEmbeddedMatch(match, maxDimension, destination));
+            }
+        }
+        return List.copyOf(jobs);
+    }
+
+    private static Set<Integer> validateDimensions(List<Integer> maxDimensions) {
+        if (maxDimensions == null || maxDimensions.isEmpty()) {
+            throw new IllegalArgumentException("Choose at least one output size.");
+        }
+        Set<Integer> dimensions = new TreeSet<>();
+        for (Integer maxDimension : maxDimensions) {
+            if (maxDimension == null || maxDimension < 1 || maxDimension > MAX_DIMENSION) {
+                throw new IllegalArgumentException(
+                        "Sizes must be between 1 and " + MAX_DIMENSION + " pixels.");
+            }
+            dimensions.add(maxDimension);
+        }
+        return dimensions;
+    }
+
+    private static Path normalizeOutputDirectory(Path outputDirectory) {
+        if (outputDirectory == null) {
+            throw new IllegalArgumentException("Choose an output directory.");
+        }
+        return outputDirectory.toAbsolutePath().normalize();
+    }
+
+    private static String fileNameFromPath(String filePath) {
+        String normalizedPath = filePath.replace('\\', '/');
+        int separator = normalizedPath.lastIndexOf('/');
+        String fileName = normalizedPath.substring(separator + 1);
+        return fileName.isBlank() ? "embedded-svg" : fileName;
     }
 
     static List<String> createOutputNames(List<Path> relativePaths, int maxDimension) {
@@ -173,10 +230,11 @@ public final class SvgBatchPngExporter {
         for (int index = 0; index < jobs.size(); index++) {
             indicator.checkCanceled();
             ExportJob job = jobs.get(index);
-            indicator.setText2(job.getSource().getPath());
+            indicator.setText2(job.getSourceDescription());
             indicator.setFraction((double) index / jobs.size());
-            if (!job.getSource().isValid()) {
-                failures.add(job.getSource().getName() + ": source file is no longer available.");
+            VirtualFile source = job.getSource();
+            if (source != null && !source.isValid()) {
+                failures.add(source.getName() + ": source file is no longer available.");
                 continue;
             }
             ExistingFilesPolicy policy = existingFilesPolicies.getOrDefault(
@@ -186,7 +244,7 @@ public final class SvgBatchPngExporter {
                 continue;
             }
             try {
-                String rawSource = readSource(job.getSource());
+                String rawSource = source == null ? job.embeddedDataUri : readSource(source);
                 String svg = SvgDataUriUtil.decodeSvgContent(rawSource);
                 if (svg == null) {
                     failures.add(failure(job, "Invalid or unsupported SVG content."));
@@ -208,18 +266,23 @@ public final class SvgBatchPngExporter {
     }
 
     private static Path getProjectRelativePath(VirtualFile file, String projectBasePath) {
+        return getProjectRelativePath(file.getPath(), file.getName(), projectBasePath);
+    }
+
+    private static Path getProjectRelativePath(String filePath, String fallbackName,
+                                               String projectBasePath) {
         if (projectBasePath == null || projectBasePath.isBlank()) {
-            return Path.of(file.getName());
+            return Path.of(fallbackName);
         }
-        String path = SvgProjectBrowserPanel.projectRelativePath(projectBasePath, file.getPath());
+        String path = SvgProjectBrowserPanel.projectRelativePath(projectBasePath, filePath);
         Path relativePath;
         try {
             relativePath = Path.of(path).normalize();
         } catch (RuntimeException exception) {
-            relativePath = Path.of(file.getName());
+            relativePath = Path.of(fallbackName);
         }
         if (relativePath.isAbsolute() || relativePath.startsWith("..") || relativePath.getFileName() == null) {
-            return Path.of(file.getName());
+            return Path.of(fallbackName);
         }
         return relativePath;
     }
@@ -265,7 +328,7 @@ public final class SvgBatchPngExporter {
     }
 
     private static String failure(ExportJob job, String message) {
-        return job.getSource().getName() + " (" + job.getMaxDimension() + "px): " + message;
+        return job.getSourceDescription() + " (" + job.getMaxDimension() + "px): " + message;
     }
 
     public enum ExistingFilesPolicy {
@@ -274,18 +337,37 @@ public final class SvgBatchPngExporter {
     }
 
     public static final class ExportJob {
-        private final VirtualFile source;
+        private final @Nullable VirtualFile source;
+        private final String embeddedDataUri;
+        private final String sourceDescription;
         private final int maxDimension;
         private final Path destination;
 
         private ExportJob(VirtualFile source, int maxDimension, Path destination) {
+            this(source, null, source.getPath(), maxDimension, destination);
+        }
+
+        private ExportJob(VirtualFile source, String embeddedDataUri, String sourceDescription,
+                          int maxDimension, Path destination) {
             this.source = source;
+            this.embeddedDataUri = embeddedDataUri;
+            this.sourceDescription = sourceDescription;
             this.maxDimension = maxDimension;
             this.destination = destination;
         }
 
-        public VirtualFile getSource() {
+        private static ExportJob forEmbeddedMatch(SvgEmbeddedSearch.Match match, int maxDimension,
+                                                  Path destination) {
+            return new ExportJob(null, match.getDataUri(),
+                    match.getFilePath() + ":" + match.getLineNumber(), maxDimension, destination);
+        }
+
+        public @Nullable VirtualFile getSource() {
             return source;
+        }
+
+        public String getSourceDescription() {
+            return sourceDescription;
         }
 
         public int getMaxDimension() {

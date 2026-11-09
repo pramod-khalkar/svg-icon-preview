@@ -45,10 +45,12 @@ and future release ideas. Future scopes remain provisional until scheduled.
 ## Implemented but not yet released
 
 ### 1.3.0 — Batch raster export
-- Select multiple standalone SVGs from the project browser and export PNGs at
-  one or more maximum-edge sizes, preserving each SVG's aspect ratio.
+- Select multiple standalone SVGs or SVG data URI matches from the project
+  browser and export PNGs at one or more maximum-edge sizes, preserving aspect
+  ratio.
 - Save outputs directly in the chosen directory and include the output size in
-  each PNG filename; disambiguate duplicate source names with their folder paths.
+  each PNG filename; disambiguate duplicate sources and identify embedded matches
+  by source filename, line, and occurrence.
 - Choose whether to replace or skip each existing file, apply either choice to
   all existing outputs, monitor background progress, and receive a summary.
 

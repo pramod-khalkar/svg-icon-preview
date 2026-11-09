@@ -64,7 +64,7 @@ tasks {
             """
             <h3>Version 1.3.0</h3>
             <ul>
-                <li>Select multiple project SVGs and batch-export them directly into a chosen directory at multiple sizes while preserving aspect ratio</li>
+                <li>Select multiple standalone SVGs or embedded data URI matches and batch-export them directly into a chosen directory at multiple sizes while preserving aspect ratio</li>
                 <li>Disambiguate duplicate filenames and choose how to handle existing PNGs per file or across all existing outputs</li>
             </ul>
             """.trimIndent()

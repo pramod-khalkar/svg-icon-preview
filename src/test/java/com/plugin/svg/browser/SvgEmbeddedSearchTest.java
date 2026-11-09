@@ -41,6 +41,19 @@ public class SvgEmbeddedSearchTest {
     }
 
     @Test
+    public void numbersValidMatchesWithinEachSourceLine() {
+        String firstUri = SvgDataUriUtil.encodeBase64DataUri("<svg><path/></svg>");
+        String secondUri = SvgDataUriUtil.encodeBase64DataUri("<svg><circle/></svg>");
+
+        List<SvgEmbeddedSearch.Match> matches =
+                SvgEmbeddedSearch.findMatches(firstUri + " " + secondUri);
+
+        assertEquals(2, matches.size());
+        assertEquals(1, matches.get(0).getOccurrence());
+        assertEquals(2, matches.get(1).getOccurrence());
+    }
+
+    @Test
     public void findsUrlEncodedSvgDataUrisWithCharset() {
         String uri = "data:image/svg+xml;charset=UTF-8,"
                 + URLEncoder.encode("<svg><path/></svg>", StandardCharsets.UTF_8);

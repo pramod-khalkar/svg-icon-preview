@@ -1,6 +1,7 @@
 package com.plugin.svg.browser;
 
 import com.intellij.testFramework.LightVirtualFile;
+import com.plugin.svg.data.SvgDataUriUtil;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -80,6 +81,24 @@ public class SvgBatchPngExporterTest {
                 List.of(Path.of("a-b", "x", "icon.svg"), Path.of("a", "b-x", "icon.svg")), 64);
 
         assertEquals(List.of("a-b-x-icon-64px.png", "a-b-x-icon-2-64px.png"), names);
+    }
+
+    @Test
+    public void plansEmbeddedMatchesDirectlyInOutputDirectoryWithStableNames() throws Exception {
+        String firstUri = SvgDataUriUtil.encodeBase64DataUri("<svg><path/></svg>");
+        String secondUri = SvgDataUriUtil.encodeBase64DataUri("<svg><circle/></svg>");
+        List<SvgEmbeddedSearch.Match> matches = SvgEmbeddedSearch.findMatches(
+                "/project/src/icons.js", firstUri + " " + secondUri);
+        Path outputDirectory = temporaryFolder.newFolder("embedded-output").toPath();
+
+        List<SvgBatchPngExporter.ExportJob> jobs = SvgBatchPngExporter.createEmbeddedPlan(
+                matches.subList(1, 2), List.of(64), "/project", outputDirectory);
+
+        assertEquals(1, jobs.size());
+        assertEquals("icons-line1-match2-64px.png",
+                jobs.get(0).getDestination().getFileName().toString());
+        assertEquals(outputDirectory.toAbsolutePath().normalize(),
+                jobs.get(0).getDestination().getParent());
     }
 
     @Test

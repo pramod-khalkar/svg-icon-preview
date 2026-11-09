@@ -20,6 +20,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.WindowManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -52,6 +53,7 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
     private final DefaultListModel<VirtualFile> listModel = new DefaultListModel<>();
     private final JList<VirtualFile> fileList = new JList<>(listModel);
     private JButton exportPngButton;
+    private JButton exportEmbeddedPngButton;
     private boolean exportInProgress;
     private final JTextField embeddedSearchField = new JTextField();
     private final JLabel embeddedStatusLabel = new JLabel(" ");
@@ -169,13 +171,22 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
         refreshButton.addActionListener(event -> refreshEmbeddedSvgs());
         controls.add(refreshButton, BorderLayout.EAST);
 
-        embeddedList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        embeddedList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         embeddedList.setCellRenderer(new EmbeddedSvgCellRenderer());
         embeddedList.setFixedCellHeight(82);
         embeddedList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(event)) {
+                    int index = embeddedList.locationToIndex(event.getPoint());
+                    if (index < 0) {
+                        return;
+                    }
+                    Rectangle cellBounds = embeddedList.getCellBounds(index, index);
+                    if (cellBounds == null || !cellBounds.contains(event.getPoint())) {
+                        return;
+                    }
+                    embeddedList.setSelectedIndex(index);
                     openSelectedEmbeddedPreview();
                 }
             }
@@ -193,13 +204,19 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
         previewButton.addActionListener(event -> openSelectedEmbeddedPreview());
         JButton openSourceButton = new JButton("Open Source");
         openSourceButton.addActionListener(event -> openSelectedEmbeddedSource());
+        exportEmbeddedPngButton = new JButton("Export PNG...");
+        exportEmbeddedPngButton.setToolTipText("Export selected embedded SVGs as PNG images");
+        exportEmbeddedPngButton.setEnabled(false);
+        exportEmbeddedPngButton.addActionListener(event -> exportSelectedEmbeddedMatches());
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.TRAILING, 4, 0));
+        actions.add(exportEmbeddedPngButton);
         actions.add(previewButton);
         actions.add(openSourceButton);
         embeddedList.addListSelectionListener(event -> {
-            boolean hasSelection = embeddedList.getSelectedValue() != null;
+            boolean hasSelection = !embeddedList.isSelectionEmpty();
             previewButton.setEnabled(hasSelection);
             openSourceButton.setEnabled(hasSelection);
+            updateExportButtonState();
         });
         previewButton.setEnabled(false);
         openSourceButton.setEnabled(false);
@@ -352,6 +369,9 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
         if (exportPngButton != null) {
             exportPngButton.setEnabled(!exportInProgress && !fileList.isSelectionEmpty());
         }
+        if (exportEmbeddedPngButton != null) {
+            exportEmbeddedPngButton.setEnabled(!exportInProgress && !embeddedList.isSelectionEmpty());
+        }
     }
 
     private void exportSelectedSvgFiles() {
@@ -362,31 +382,79 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
             return;
         }
 
-        List<Integer> sizes = SvgBatchExportOptionsDialog.show(this);
+        Component dialogParent = getDialogParent();
+        List<Integer> sizes = SvgBatchExportOptionsDialog.show(dialogParent);
         if (sizes == null) {
             return;
         }
 
+        Path outputDirectory = choosePngOutputDirectory(dialogParent);
+        if (outputDirectory == null) {
+            return;
+        }
+
+        List<SvgBatchPngExporter.ExportJob> jobs;
+        try {
+            jobs = SvgBatchPngExporter.createPlan(selectedFiles, sizes,
+                    project.getBasePath(), outputDirectory);
+        } catch (IllegalArgumentException exception) {
+            JOptionPane.showMessageDialog(dialogParent, exception.getMessage(),
+                    "Unable to prepare PNG export", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        startBatchPngExport(jobs);
+    }
+
+    private void exportSelectedEmbeddedMatches() {
+        List<SvgEmbeddedSearch.Match> selectedMatches = embeddedList.getSelectedValuesList();
+        if (selectedMatches.isEmpty()) {
+            return;
+        }
+
+        Component dialogParent = getDialogParent();
+        List<Integer> sizes = SvgBatchExportOptionsDialog.show(dialogParent);
+        if (sizes == null) {
+            return;
+        }
+
+        Path outputDirectory = choosePngOutputDirectory(dialogParent);
+        if (outputDirectory == null) {
+            return;
+        }
+
+        List<SvgBatchPngExporter.ExportJob> jobs;
+        try {
+            jobs = SvgBatchPngExporter.createEmbeddedPlan(selectedMatches, sizes,
+                    project.getBasePath(), outputDirectory);
+        } catch (IllegalArgumentException exception) {
+            JOptionPane.showMessageDialog(dialogParent, exception.getMessage(),
+                    "Unable to prepare PNG export", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        startBatchPngExport(jobs);
+    }
+
+    private Path choosePngOutputDirectory(Component dialogParent) {
         JFileChooser directoryChooser = new JFileChooser();
         directoryChooser.setDialogTitle("Choose PNG export directory");
         directoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         if (project.getBasePath() != null) {
             directoryChooser.setCurrentDirectory(new java.io.File(project.getBasePath()));
         }
-        if (directoryChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-            return;
+        if (directoryChooser.showOpenDialog(dialogParent) != JFileChooser.APPROVE_OPTION) {
+            return null;
         }
+        return Path.of(directoryChooser.getSelectedFile().getAbsolutePath());
+    }
 
-        List<SvgBatchPngExporter.ExportJob> jobs;
-        try {
-            jobs = SvgBatchPngExporter.createPlan(selectedFiles, sizes, project.getBasePath(),
-                    Path.of(directoryChooser.getSelectedFile().getAbsolutePath()));
-        } catch (IllegalArgumentException exception) {
-            JOptionPane.showMessageDialog(this, exception.getMessage(),
-                    "Unable to prepare PNG export", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    private Component getDialogParent() {
+        Component ideFrame = WindowManager.getInstance().getFrame(project);
+        return ideFrame == null ? this : ideFrame;
+    }
 
+    private void startBatchPngExport(List<SvgBatchPngExporter.ExportJob> jobs) {
         Map<Path, SvgBatchPngExporter.ExistingFilesPolicy> existingFilesPolicies =
                 chooseExistingFilesPolicies(jobs);
         if (existingFilesPolicies == null) {
@@ -458,9 +526,9 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
             Object[] message = {
                     "A PNG file already exists:",
                     "Output: " + destination,
-                    "Source: " + job.getSource().getPath() + " (" + job.getMaxDimension() + " px)"
+                    "Source: " + job.getSourceDescription() + " (" + job.getMaxDimension() + " px)"
             };
-            int choice = JOptionPane.showOptionDialog(this, message, "Existing PNG File",
+            int choice = JOptionPane.showOptionDialog(getDialogParent(), message, "Existing PNG File",
                     JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
                     null, choices, choices[1]);
             switch (choice) {
