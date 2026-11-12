@@ -13,8 +13,8 @@ SVG Toolkit helps you find, preview, inspect, edit, and export SVG graphics in
 IntelliJ-based IDEs. It previews SVG data URIs directly from code and provides
 an editor and project browser for standalone SVG files and embedded data URIs.
 
-- **Current stable version:** 1.3.0
-- **Next planned release:** [1.4.0 — SVG diagnostics](docs/roadmap.md)
+- **Current stable version:** 1.4.0
+- **Next planned release:** [1.5.0 — Compare and theme preview](docs/roadmap.md)
 - **IDE compatibility:** IntelliJ Platform 2023.1 and later
 - **Runtime:** Java 17+
 
@@ -79,6 +79,9 @@ an editor and project browser for standalone SVG files and embedded data URIs.
 
 - Edit formatted SVG source with a live preview and split, source-only, or
   preview-only layouts.
+- Review preview diagnostics for parse/render errors and non-blocking warnings
+  about missing intrinsic sizing or external resource references. Diagnostics
+  do not fetch external resources; double-click a located issue to jump to source.
 - Save changes to standalone SVG files with a check for external edits, or save
   a new SVG. Edits to data-URI previews remain local to the preview.
 - Export as PNG or copy the preview as PNG or the SVG as a Base64 data URI.
@@ -164,6 +167,8 @@ As SVG to write them to disk. The File menu also provides **Save As PNG…**,
 
 - Use the layout buttons above the editor to show source and preview together,
   source only, or preview only. Drag the divider in split view to resize panes.
+- Check the diagnostics strip below the preview for errors and warnings. Expand
+  its details and double-click an issue with a source location to navigate there.
 - Use Zoom In/Out, **Actual size (1:1)**, or **Fit image to preview**.
 - Hold `Ctrl` while scrolling over the preview to zoom. Keyboard shortcuts are
   `Ctrl` + `+` / `=`, `Ctrl` + `-`, and `Ctrl` + `0`.
@@ -194,7 +199,7 @@ compatibility in `build.gradle.kts`.
 ```
 
 The plugin ZIP is generated at
-`build/distributions/svg-toolkit-1.3.0.zip`.
+`build/distributions/svg-toolkit-1.4.0.zip`.
 
 ## Project structure
 

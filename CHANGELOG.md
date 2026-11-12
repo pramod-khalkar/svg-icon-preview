@@ -2,6 +2,13 @@
 
 All notable changes to SVG Toolkit will be documented in this file.
 
+### [1.4.0] - 2026-11-12
+
+#### Added
+- Added preview diagnostics for malformed SVG/XML and rendering failures, including source locations when available.
+- Added non-blocking warnings for missing intrinsic sizing and external resource references; diagnostics never fetch external resources.
+- Added a collapsible diagnostics panel with double-click navigation to the reported source location.
+
 ### [1.3.0] - 2026-11-12
 
 #### Added
