@@ -72,6 +72,6 @@ tasks {
     }
 
     buildPlugin {
-        archiveFileName.set("svg-icon-preview-${version}.zip")
+        archiveFileName.set("svg-toolkit-${version}.zip")
     }
 }

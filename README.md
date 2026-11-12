@@ -13,8 +13,8 @@ SVG Toolkit helps you find, preview, inspect, edit, and export SVG graphics in
 IntelliJ-based IDEs. It previews SVG data URIs directly from code and provides
 an editor and project browser for standalone SVG files and embedded data URIs.
 
-- **Current stable version:** 1.2.0
-- **Next planned release:** [1.3.0 — Batch raster export](docs/roadmap.md)
+- **Current stable version:** 1.3.0
+- **Next planned release:** [1.4.0 — SVG diagnostics](docs/roadmap.md)
 - **IDE compatibility:** IntelliJ Platform 2023.1 and later
 - **Runtime:** Java 17+
 
@@ -51,6 +51,16 @@ an editor and project browser for standalone SVG files and embedded data URIs.
       <sub>Browse project SVG assets</sub>
     </td>
   </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/multiple-export-png-option.png" alt="SVG Files tab showing the batch PNG export action" width="420"><br>
+      <sub>Select project SVGs for batch export</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/export-png-to-multiple-sizes.png" alt="Batch PNG export dialog with preset and custom output sizes" width="420"><br>
+      <sub>Choose multiple PNG output sizes</sub>
+    </td>
+  </tr>
 </table>
 
 ## Features
@@ -72,9 +82,8 @@ an editor and project browser for standalone SVG files and embedded data URIs.
 - Save changes to standalone SVG files with a check for external edits, or save
   a new SVG. Edits to data-URI previews remain local to the preview.
 - Export as PNG or copy the preview as PNG or the SVG as a Base64 data URI.
-- **Planned for 1.3.0:** Select multiple standalone SVGs or embedded SVG data URI
-  matches to batch-export PNGs at one or more maximum-edge sizes while preserving
-  aspect ratio.
+- Select multiple standalone SVGs or embedded SVG data URI matches to batch-export
+  PNGs at one or more maximum-edge sizes while preserving aspect ratio.
 
 ### Preview controls and performance
 
@@ -127,7 +136,7 @@ To find an embedded URI, open **SVG Data URIs**. Select a result and choose
 **Preview** to open it in the editor or **Open Source** to jump to its file and
 line. Reopening an already-previewed item selects its existing tab.
 
-### Batch-export SVGs from the project browser (planned for 1.3.0)
+### Batch-export SVGs from the project browser
 
 1. In the **SVG Files** tab, select multiple files and choose **Export PNG...**.
    The **SVG Data URIs** tab also supports selecting and exporting multiple
@@ -183,6 +192,9 @@ compatibility in `build.gradle.kts`.
 ./gradlew clean build && ./gradlew buildPlugin
 ./gradlew runIde
 ```
+
+The plugin ZIP is generated at
+`build/distributions/svg-toolkit-1.3.0.zip`.
 
 ## Project structure
 

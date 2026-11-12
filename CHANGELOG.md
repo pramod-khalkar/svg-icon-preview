@@ -2,6 +2,14 @@
 
 All notable changes to SVG Toolkit will be documented in this file.
 
+### [1.3.0] - 2026-11-12
+
+#### Added
+- Added batch PNG export for multiple standalone SVG files and embedded SVG data URI matches from the project browser.
+- Added preset and custom maximum-edge output sizes while preserving each SVG's aspect ratio.
+- Save batch exports directly into a selected directory, with collision-safe filenames for duplicate sources.
+- Added per-file Replace/Skip choices, Replace All/Skip All options, cancellable background export, and a summary of skipped or failed files.
+
 ### [1.2.0] - 2026-11-08
 
 #### Added

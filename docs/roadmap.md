@@ -1,7 +1,7 @@
 # SVG Toolkit Roadmap
 
-This roadmap tracks released work through 1.2.0, features implemented for 1.3.0,
-and future release ideas. Future scopes remain provisional until scheduled.
+This roadmap tracks released work through 1.3.0 and future release ideas.
+Future scopes remain provisional until scheduled.
 
 ## Completed
 
@@ -41,8 +41,6 @@ and future release ideas. Future scopes remain provisional until scheduled.
 - Open browser results in the existing SVG Toolkit editor.
 - Add matching light/dark IntelliJ-style icons for the Project View action and
   tool window.
-
-## Implemented but not yet released
 
 ### 1.3.0 — Batch raster export
 - Select multiple standalone SVGs or SVG data URI matches from the project
@@ -85,8 +83,7 @@ and IDE tooling.
 
 ## Release process
 
-- The next planned release is 1.3.0, focused on batch raster export. Keep the
-  latest stable version distinct from this development version until release.
+- The next planned release is 1.4.0, focused on SVG diagnostics.
 - For each release, synchronize `CHANGELOG.md`, `README.md`, `build.gradle.kts`,
   and the user-facing description in `src/main/resources/META-INF/plugin.xml`.
 - Keep changes focused and add tests for behavior changes.
