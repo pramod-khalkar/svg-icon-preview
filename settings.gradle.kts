@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "svg-icon-preview"
+rootProject.name = "svg-toolkit"
