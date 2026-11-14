@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.plugin.svg"
-version = "1.3.0"
+version = "1.4.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -62,10 +62,10 @@ tasks {
 
         changeNotes.set(
             """
-            <h3>Version 1.3.0</h3>
+            <h3>Version 1.4.0</h3>
             <ul>
-                <li>Select multiple standalone SVGs or embedded data URI matches and batch-export them directly into a chosen directory at multiple sizes while preserving aspect ratio</li>
-                <li>Disambiguate duplicate filenames and choose how to handle existing PNGs per file or across all existing outputs</li>
+                <li>Show SVG parse and rendering errors with source locations in the preview diagnostics</li>
+                <li>Flag missing intrinsic sizing and external resource references without fetching external content</li>
             </ul>
             """.trimIndent()
         )

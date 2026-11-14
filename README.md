@@ -13,8 +13,8 @@ SVG Toolkit helps you find, preview, inspect, edit, and export SVG graphics in
 IntelliJ-based IDEs. It previews SVG data URIs directly from code and provides
 an editor and project browser for standalone SVG files and embedded data URIs.
 
-- **Current stable version:** 1.3.0
-- **Next planned release:** [1.4.0 — SVG diagnostics](docs/roadmap.md)
+- **Current stable version:** 1.4.0
+- **Next planned release:** [1.5.0 — Compare and theme preview](docs/roadmap.md)
 - **IDE compatibility:** IntelliJ Platform 2023.1 and later
 - **Runtime:** Java 17+
 
@@ -61,6 +61,12 @@ an editor and project browser for standalone SVG files and embedded data URIs.
       <sub>Choose multiple PNG output sizes</sub>
     </td>
   </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <img src="docs/screenshots/editor-shows-dignostic-results.png" alt="SVG editor showing a path diagnostic with an actionable arc-command suggestion" width="840"><br>
+      <sub>Preview diagnostics explain SVG errors and suggest what to check</sub>
+    </td>
+  </tr>
 </table>
 
 ## Features
@@ -79,6 +85,16 @@ an editor and project browser for standalone SVG files and embedded data URIs.
 
 - Edit formatted SVG source with a live preview and split, source-only, or
   preview-only layouts.
+- Review preview diagnostics for parse/render errors and non-blocking warnings
+  about missing intrinsic sizing or external resource references. Diagnostics
+  validate path data, explain incomplete arc commands, and provide best-effort
+  attribute/element guidance for renderer errors when available. They do not
+  auto-edit ambiguous SVGs or fetch external resources; double-click a located
+  issue to jump to source.
+- If a gutter preview cannot render, it still opens in the editor so you can
+  inspect the source and renderer diagnostics.
+- Embedded SVG search results also open in the editor when rendering fails, so
+  their source and diagnostics remain available.
 - Save changes to standalone SVG files with a check for external edits, or save
   a new SVG. Edits to data-URI previews remain local to the preview.
 - Export as PNG or copy the preview as PNG or the SVG as a Base64 data URI.
@@ -130,7 +146,8 @@ Choose either way to open an existing `.svg` file:
 
 The browser shows thumbnails, file sizes, dimensions when readable, and
 project-relative paths. Hover over a path to see the absolute path. Use Refresh
-after adding or moving files.
+after adding, moving, or correcting files; refresh also retries cached thumbnail
+renders.
 
 To find an embedded URI, open **SVG Data URIs**. Select a result and choose
 **Preview** to open it in the editor or **Open Source** to jump to its file and
@@ -164,6 +181,8 @@ As SVG to write them to disk. The File menu also provides **Save As PNG…**,
 
 - Use the layout buttons above the editor to show source and preview together,
   source only, or preview only. Drag the divider in split view to resize panes.
+- Check the diagnostics strip below the preview for errors and warnings. Expand
+  its details and double-click an issue with a source location to navigate there.
 - Use Zoom In/Out, **Actual size (1:1)**, or **Fit image to preview**.
 - Hold `Ctrl` while scrolling over the preview to zoom. Keyboard shortcuts are
   `Ctrl` + `+` / `=`, `Ctrl` + `-`, and `Ctrl` + `0`.
@@ -194,7 +213,7 @@ compatibility in `build.gradle.kts`.
 ```
 
 The plugin ZIP is generated at
-`build/distributions/svg-toolkit-1.3.0.zip`.
+`build/distributions/svg-toolkit-1.4.0.zip`.
 
 ## Project structure
 

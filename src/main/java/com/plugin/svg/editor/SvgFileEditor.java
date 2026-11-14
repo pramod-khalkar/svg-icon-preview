@@ -1,6 +1,7 @@
 package com.plugin.svg.editor;
 
 import com.plugin.svg.data.SvgDataUriUtil;
+import com.plugin.svg.render.SvgDiagnostics;
 import com.plugin.svg.render.SvgRenderer;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -40,6 +41,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -65,10 +68,17 @@ public class SvgFileEditor implements FileEditor, Disposable {
     private final JPanel editorOnlyPanel;
     private final JPanel previewOnlyPanel;
     private final OnePixelSplitter splitPane;
+    private JToggleButton splitLayoutButton;
     private double splitRatio = 0.5;
     private final EditorEx svgEditor;
     private final SvgPreviewPanel previewPanel;
     private final JLabel imageDetailsLabel;
+    private final DefaultListModel<SvgDiagnostics.Issue> diagnosticsModel = new DefaultListModel<>();
+    private final JLabel diagnosticsSummaryLabel = new JLabel("Checking SVG...");
+    private final JButton diagnosticsToggleButton = new JButton("Show details");
+    private final JPanel diagnosticsDetailsPanel = new JPanel(new BorderLayout());
+    private final JList<SvgDiagnostics.Issue> diagnosticsList = new JList<>(diagnosticsModel);
+    private boolean diagnosticsExpanded;
     private final Timer previewUpdateTimer;
     private final AtomicLong renderGeneration = new AtomicLong();
     private BufferedImage currentImage;
@@ -108,6 +118,7 @@ public class SvgFileEditor implements FileEditor, Disposable {
         this.previewContainer = new JPanel(new BorderLayout());
         previewContainer.add(createPreviewToolbar(), BorderLayout.NORTH);
         previewContainer.add(previewScrollPane, BorderLayout.CENTER);
+        previewContainer.add(createDiagnosticsPanel(), BorderLayout.SOUTH);
         previewPanel.setViewport(previewScrollPane.getViewport());
         previewScrollPane.getViewport().addComponentListener(new ComponentAdapter() {
             @Override
@@ -175,13 +186,17 @@ public class SvgFileEditor implements FileEditor, Disposable {
                 this.currentImage = previewImage;
                 this.previewPanel.setImage(previewImage);
                 updateImageDetails(previewImage, this.svgText);
+                String editorSource = svgEditor.getDocument().getText();
                 if (previewImage == null) {
-                    renderSvg(this.svgText);
+                    renderSvg(editorSource);
+                } else {
+                    processSvg(editorSource, false, renderGeneration.get());
                 }
             } else {
                 this.currentImage = null;
                 this.previewPanel.setImage(null);
                 imageDetailsLabel.setText("Invalid SVG - check idea.log for details");
+                updateDiagnostics(SvgDiagnostics.analyze(null));
             }
         } catch (Exception e) {
             if (e instanceof IOException) {
@@ -189,54 +204,208 @@ public class SvgFileEditor implements FileEditor, Disposable {
                 this.currentImage = null;
                 this.previewPanel.setImage(null);
                 imageDetailsLabel.setText("Error reading file");
+                updateDiagnostics(List.of(new SvgDiagnostics.Issue(
+                        SvgDiagnostics.Severity.ERROR, "Unable to read the SVG source file.", -1, -1)));
             } else {
                 LOG.warn("[SVG Toolkit] Error processing SVG: " + e.getMessage(), e);
                 this.currentImage = null;
                 this.previewPanel.setImage(null);
                 imageDetailsLabel.setText("Error processing SVG - see idea.log for details");
+                updateDiagnostics(List.of(new SvgDiagnostics.Issue(
+                        SvgDiagnostics.Severity.ERROR, "Unable to process the SVG source.", -1, -1)));
             }
         }
     }
 
     private void renderSvg(String source) {
-        long generation = renderGeneration.get();
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            BufferedImage image = SvgRenderer.render(source, 400, 400);
-            ApplicationManager.getApplication().invokeLater(() -> {
-                if (disposed || generation != renderGeneration.get()) {
-                    return;
-                }
-                currentImage = image;
-                previewPanel.setImage(image);
-                updateImageDetails(image, source);
-            });
-        });
+        processSvg(source, true, renderGeneration.get());
     }
 
-    private void renderCurrentSvg() {
-        String source = svgEditor.getDocument().getText();
-        long generation = renderGeneration.incrementAndGet();
+    private void processSvg(String input, boolean renderImage, long generation) {
+        setDiagnosticsChecking();
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            String decoded = SvgDataUriUtil.decodeSvgContent(source);
-            BufferedImage image = decoded == null ? null : SvgRenderer.render(decoded, 400, 400);
+            String decoded = SvgDataUriUtil.decodeSvgContent(input);
+            BufferedImage image = null;
+            List<SvgDiagnostics.Issue> issues = new ArrayList<>();
+            if (decoded == null) {
+                issues.add(new SvgDiagnostics.Issue(
+                        SvgDiagnostics.Severity.ERROR, "Unable to decode the SVG source.", 1, 1));
+            } else {
+                issues.addAll(SvgDiagnostics.analyze(decoded));
+                if (renderImage) {
+                    SvgRenderer.RenderResult result = SvgRenderer.renderWithResult(decoded, 400, 400);
+                    image = result.image();
+                    if (image == null && issues.stream().noneMatch(
+                            issue -> issue.severity() == SvgDiagnostics.Severity.ERROR)) {
+                        String detail = conciseRenderError(result.errorMessage());
+                        issues.add(SvgDiagnostics.fromRenderError(detail));
+                    }
+                }
+            }
+            BufferedImage completedImage = image;
+            List<SvgDiagnostics.Issue> completedIssues = List.copyOf(issues);
             ApplicationManager.getApplication().invokeLater(() -> {
                 if (disposed || generation != renderGeneration.get()) {
                     return;
                 }
                 svgText = decoded;
-                currentImage = image;
-                previewPanel.setImage(image);
-                updateImageDetails(image, decoded);
+                if (renderImage) {
+                    currentImage = completedImage;
+                    previewPanel.setImage(completedImage);
+                }
+                updateImageDetails(currentImage, decoded);
+                updateDiagnostics(completedIssues);
             });
         });
+    }
+
+    private static @Nullable String conciseRenderError(@Nullable String message) {
+        if (message == null || message.isBlank()) {
+            return null;
+        }
+        String singleLine = message.replaceAll("\\s+", " ").trim();
+        return singleLine.length() > 200 ? singleLine.substring(0, 197) + "..." : singleLine;
+    }
+
+    private void renderCurrentSvg() {
+        String source = svgEditor.getDocument().getText();
+        long generation = renderGeneration.incrementAndGet();
+        processSvg(source, true, generation);
     }
 
     private void updateImageDetails(@Nullable BufferedImage image, @Nullable String source) {
         if (image != null) {
             imageDetailsLabel.setText(SvgDimensions.formatImageDetails(image, source));
         } else {
-            imageDetailsLabel.setText("Unable to render SVG");
+            imageDetailsLabel.setText("Preview unavailable; see Diagnostics below.");
         }
+    }
+
+    private JComponent createDiagnosticsPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(0xCCCCCC)));
+
+        JPanel header = new JPanel(new BorderLayout(8, 0));
+        header.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+        header.add(diagnosticsSummaryLabel, BorderLayout.CENTER);
+        diagnosticsToggleButton.setFocusable(false);
+        diagnosticsToggleButton.setMargin(new Insets(2, 8, 2, 8));
+        diagnosticsToggleButton.setEnabled(false);
+        diagnosticsToggleButton.addActionListener(event -> {
+            diagnosticsExpanded = !diagnosticsExpanded;
+            diagnosticsDetailsPanel.setVisible(diagnosticsExpanded);
+            diagnosticsToggleButton.setText(diagnosticsExpanded ? "Hide details" : "Show details");
+            panel.revalidate();
+            panel.repaint();
+        });
+        header.add(diagnosticsToggleButton, BorderLayout.EAST);
+        panel.add(header, BorderLayout.NORTH);
+
+        diagnosticsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        diagnosticsList.setCellRenderer((list, issue, index, selected, focused) -> {
+            String text = issue.displayText();
+            JTextArea item = new JTextArea(text);
+            item.setFont(list.getFont());
+            item.setLineWrap(true);
+            item.setWrapStyleWord(true);
+            item.setEditable(false);
+            item.setOpaque(true);
+            item.setBorder(BorderFactory.createEmptyBorder(3, 6, 3, 6));
+            item.setBackground(selected ? list.getSelectionBackground() : list.getBackground());
+            item.setForeground(selected ? list.getSelectionForeground() : list.getForeground());
+            item.setToolTipText(text);
+            item.setSize(new Dimension(Math.max(list.getWidth(), 360), Short.MAX_VALUE));
+            return item;
+        });
+        diagnosticsList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() == 2) {
+                    int index = diagnosticsList.locationToIndex(event.getPoint());
+                    if (index >= 0 && diagnosticsList.getCellBounds(index, index).contains(event.getPoint())) {
+                        navigateToDiagnostic(diagnosticsModel.get(index));
+                    }
+                }
+            }
+        });
+        JScrollPane diagnosticsScrollPane = new JScrollPane(diagnosticsList);
+        diagnosticsScrollPane.setPreferredSize(new Dimension(100, 112));
+        diagnosticsDetailsPanel.add(diagnosticsScrollPane, BorderLayout.CENTER);
+        diagnosticsDetailsPanel.setVisible(false);
+        panel.add(diagnosticsDetailsPanel, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private void setDiagnosticsChecking() {
+        diagnosticsSummaryLabel.setText("Checking SVG...");
+        diagnosticsToggleButton.setEnabled(false);
+        diagnosticsModel.clear();
+        diagnosticsDetailsPanel.setVisible(false);
+        diagnosticsPanelRevalidate();
+    }
+
+    private void updateDiagnostics(List<SvgDiagnostics.Issue> issues) {
+        diagnosticsModel.clear();
+        int errors = 0;
+        int warnings = 0;
+        for (SvgDiagnostics.Issue issue : issues) {
+            diagnosticsModel.addElement(issue);
+            if (issue.severity() == SvgDiagnostics.Severity.ERROR) {
+                errors++;
+            } else {
+                warnings++;
+            }
+        }
+
+        if (issues.isEmpty()) {
+            diagnosticsSummaryLabel.setText("No issues detected");
+            diagnosticsToggleButton.setText("Show details");
+            diagnosticsToggleButton.setEnabled(false);
+            diagnosticsExpanded = false;
+        } else {
+            StringBuilder summary = new StringBuilder();
+            if (errors > 0) {
+                summary.append(errors).append(errors == 1 ? " error" : " errors");
+            }
+            if (warnings > 0) {
+                if (!summary.isEmpty()) {
+                    summary.append(", ");
+                }
+                summary.append(warnings).append(warnings == 1 ? " warning" : " warnings");
+            }
+            diagnosticsSummaryLabel.setText(summary.toString());
+            diagnosticsToggleButton.setEnabled(true);
+            if (errors > 0) {
+                diagnosticsExpanded = true;
+            }
+            diagnosticsToggleButton.setText(diagnosticsExpanded ? "Hide details" : "Show details");
+        }
+        diagnosticsDetailsPanel.setVisible(diagnosticsExpanded && !issues.isEmpty());
+        diagnosticsPanelRevalidate();
+    }
+
+    private void diagnosticsPanelRevalidate() {
+        previewContainer.revalidate();
+        previewContainer.repaint();
+    }
+
+    private void navigateToDiagnostic(SvgDiagnostics.Issue issue) {
+        if (issue.line() < 1) {
+            return;
+        }
+        showLayout("split");
+        if (splitLayoutButton != null) {
+            splitLayoutButton.setSelected(true);
+        }
+        Document document = svgEditor.getDocument();
+        int line = Math.min(issue.line() - 1, document.getLineCount() - 1);
+        int offset = document.getLineStartOffset(line);
+        if (issue.column() > 0) {
+            offset = Math.min(document.getLineEndOffset(line), offset + issue.column() - 1);
+        }
+        svgEditor.getCaretModel().moveToOffset(offset);
+        svgEditor.getScrollingModel().scrollToCaret(com.intellij.openapi.editor.ScrollType.CENTER);
+        svgEditor.getComponent().requestFocusInWindow();
     }
 
     private JComponent createPreviewToolbar() {
@@ -360,6 +529,7 @@ public class SvgFileEditor implements FileEditor, Disposable {
                 AllIcons.General.LayoutEditorOnly, "Show editor only");
         JToggleButton previewButton = createToggleButton(
                 AllIcons.General.LayoutPreviewOnly, "Show preview only");
+        splitLayoutButton = splitButton;
         ButtonGroup group = new ButtonGroup();
         group.add(splitButton);
         group.add(editorButton);

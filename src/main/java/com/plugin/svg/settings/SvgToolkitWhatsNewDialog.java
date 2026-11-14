@@ -38,14 +38,14 @@ final class SvgToolkitWhatsNewDialog extends DialogWrapper {
         return "<html><body style='font-family: sans-serif;'>" +
                 "<p>Highlights in SVG Toolkit " + version + ":</p>" +
                 "<ul>" +
-                "<li>Browse standalone SVGs with thumbnails, dimensions, file sizes, and project-relative paths.</li>" +
-                "<li>Search project files for SVG data URIs and inspect thumbnails, source snippets, and line numbers.</li>" +
-                "<li>Preview search results or jump directly to their source locations.</li>" +
-                "<li>Edit standalone SVGs, save changes to the original, or export SVG and PNG files.</li>" +
-                "<li>Select multiple standalone SVGs or embedded data URI matches and batch-export them into one directory at multiple sizes, with collision-safe filenames and per-file or batch-wide existing-file choices.</li>" +
-                "<li>Reopening the same SVG reuses its existing SVG Toolkit preview tab.</li>" +
+                "<li>Review malformed SVG/XML and rendering errors in the preview, with source locations when available.</li>" +
+                "<li>Get structured SVG path-data errors with command-specific repair suggestions.</li>" +
+                "<li>See non-blocking warnings when intrinsic sizing is incomplete or an SVG references external resources.</li>" +
+                "<li>Expand diagnostic details and double-click a located issue to jump to its source.</li>" +
+                "<li>Open an SVG in the editor even when gutter or embedded-result rendering fails, then inspect the renderer diagnostics.</li>" +
+                "<li>Diagnostics do not fetch external resources.</li>" +
                 "</ul>" +
-                "<p>Open <b>View → Tool Windows → SVG Toolkit</b> to explore the browser. " +
+                "<p>Open an SVG preview to see its diagnostics. " +
                 "The next time SVG Toolkit is updated, you'll see this notification again.</p>" +
                 "</body></html>";
     }

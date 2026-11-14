@@ -1,6 +1,6 @@
 # SVG Toolkit Roadmap
 
-This roadmap tracks released work through 1.3.0 and future release ideas.
+This roadmap tracks released work through 1.4.0 and future release ideas.
 Future scopes remain provisional until scheduled.
 
 ## Completed
@@ -52,16 +52,19 @@ Future scopes remain provisional until scheduled.
 - Choose whether to replace or skip each existing file, apply either choice to
   all existing outputs, monitor background progress, and receive a summary.
 
-## Planned releases
-
 ### 1.4.0 — SVG diagnostics
-Help users understand why an SVG may render or behave unexpectedly.
-- Report actionable parse/render errors in the preview.
-- Flag selected compatibility concerns, such as missing dimensions or
-  externally referenced resources, without treating every valid SVG as invalid.
+- Report malformed SVG/XML and rendering failures in the preview, including
+  source locations when available.
+- Flag missing intrinsic sizing and external resource references as
+  non-blocking warnings.
+- Provide a collapsible diagnostics panel and navigation to reported source
+  locations.
 
-**Acceptance:** Diagnostics identify the relevant issue, avoid blocking valid
-SVGs, and do not make external network requests to inspect resources.
+**Acceptance:** Diagnostics identify relevant issues, avoid blocking valid SVGs,
+provide actionable path-command suggestions, and do not make external network
+requests.
+
+## Planned releases
 
 ### 1.5.0 — Compare and theme preview
 Make visual review of assets easier.
@@ -83,7 +86,7 @@ and IDE tooling.
 
 ## Release process
 
-- The next planned release is 1.4.0, focused on SVG diagnostics.
+- The next planned release is 1.5.0, focused on compare and theme preview.
 - For each release, synchronize `CHANGELOG.md`, `README.md`, `build.gradle.kts`,
   and the user-facing description in `src/main/resources/META-INF/plugin.xml`.
 - Keep changes focused and add tests for behavior changes.

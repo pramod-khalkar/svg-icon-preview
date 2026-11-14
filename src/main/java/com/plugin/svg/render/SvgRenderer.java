@@ -1,7 +1,9 @@
 package com.plugin.svg.render;
 import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -19,6 +21,21 @@ public class SvgRenderer {
 
 	public static BufferedImage render(String svgContent, int width, int height) {
 		if (svgContent == null) return null;
+		RenderResult result = renderWithResult(svgContent, width, height);
+		if (result.image() == null) {
+			System.err.println("[SVG Toolkit] SVG Rendering failed for content length " + svgContent.length()
+					+ ": " + result.errorMessage());
+			if (result.cause() != null) {
+				result.cause().printStackTrace();
+			}
+		}
+		return result.image();
+	}
+
+	public static RenderResult renderWithResult(String svgContent, int width, int height) {
+		if (svgContent == null) {
+			return new RenderResult(null, "No SVG source was provided.", null);
+		}
 		ClassLoader original = Thread.currentThread().getContextClassLoader();
 		try {
 			Thread.currentThread().setContextClassLoader(SvgRenderer.class.getClassLoader());
@@ -42,13 +59,44 @@ public class SvgRenderer {
 
 			transcoder.transcode(new TranscoderInput(in), new TranscoderOutput(out));
 
-			return ImageIO.read(new ByteArrayInputStream(out.toByteArray()));
+			BufferedImage image = ImageIO.read(new ByteArrayInputStream(out.toByteArray()));
+			return image == null
+					? new RenderResult(null, "The renderer did not produce an image.", null)
+					: new RenderResult(image, null, null);
 		} catch (Exception e) {
-			System.err.println("[SVG Toolkit] SVG Rendering failed for content length " + (svgContent != null ? svgContent.length() : 0) + ": " + e.getMessage());
-			e.printStackTrace();
-			return null;
+			String message = detailedErrorMessage(e);
+			return new RenderResult(null,
+					message,
+					e);
 		} finally {
 			Thread.currentThread().setContextClassLoader(original);
 		}
+	}
+
+	private static String detailedErrorMessage(Exception exception) {
+		Throwable detail = exception;
+		while (true) {
+			if (detail instanceof TranscoderException transcoderException
+					&& transcoderException.getException() != null
+					&& transcoderException.getException() != detail) {
+				detail = transcoderException.getException();
+			} else if ((detail.getMessage() == null || detail.getMessage().isBlank())
+					&& detail.getCause() != null && detail.getCause() != detail) {
+				detail = detail.getCause();
+			} else {
+				break;
+			}
+		}
+
+		String message = detail.getMessage();
+		if (message == null || message.isBlank()) {
+			return "The SVG renderer could not render this document.";
+		}
+		String singleLine = message.replaceAll("\\s+", " ").trim();
+		return singleLine.length() > 240 ? singleLine.substring(0, 237) + "..." : singleLine;
+	}
+
+	public record RenderResult(@Nullable BufferedImage image, @Nullable String errorMessage,
+							   @Nullable Exception cause) {
 	}
 }
