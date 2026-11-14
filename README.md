@@ -81,7 +81,12 @@ an editor and project browser for standalone SVG files and embedded data URIs.
   preview-only layouts.
 - Review preview diagnostics for parse/render errors and non-blocking warnings
   about missing intrinsic sizing or external resource references. Diagnostics
-  do not fetch external resources; double-click a located issue to jump to source.
+  validate path data, provide command-specific suggestions, and do not fetch
+  external resources; double-click a located issue to jump to source.
+- If a gutter preview cannot render, it still opens in the editor so you can
+  inspect the source and renderer diagnostics.
+- Embedded SVG search results also open in the editor when rendering fails, so
+  their source and diagnostics remain available.
 - Save changes to standalone SVG files with a check for external edits, or save
   a new SVG. Edits to data-URI previews remain local to the preview.
 - Export as PNG or copy the preview as PNG or the SVG as a Base64 data URI.
@@ -133,7 +138,8 @@ Choose either way to open an existing `.svg` file:
 
 The browser shows thumbnails, file sizes, dimensions when readable, and
 project-relative paths. Hover over a path to see the absolute path. Use Refresh
-after adding or moving files.
+after adding, moving, or correcting files; refresh also retries cached thumbnail
+renders.
 
 To find an embedded URI, open **SVG Data URIs**. Select a result and choose
 **Preview** to open it in the editor or **Open Source** to jump to its file and

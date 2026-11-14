@@ -307,11 +307,7 @@ public class SvgFileEditor implements FileEditor, Disposable {
 
         diagnosticsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         diagnosticsList.setCellRenderer((list, issue, index, selected, focused) -> {
-            String location = issue.line() > 0
-                    ? " (line " + issue.line()
-                    + (issue.column() > 0 ? ", column " + issue.column() : "") + ")"
-                    : "";
-            String text = issue.severity().name() + location + ": " + issue.message();
+            String text = issue.displayText();
             JTextArea item = new JTextArea(text);
             item.setFont(list.getFont());
             item.setLineWrap(true);

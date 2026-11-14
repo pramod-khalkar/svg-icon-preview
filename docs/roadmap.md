@@ -61,7 +61,8 @@ Future scopes remain provisional until scheduled.
   locations.
 
 **Acceptance:** Diagnostics identify relevant issues, avoid blocking valid SVGs,
-and do not make external network requests.
+provide actionable path-command suggestions, and do not make external network
+requests.
 
 ## Planned releases
 

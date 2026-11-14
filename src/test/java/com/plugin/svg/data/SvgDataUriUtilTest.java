@@ -1,6 +1,5 @@
 package com.plugin.svg.data;
 
-import com.plugin.svg.action.SvgIconLineMarkerProvider;
 import com.plugin.svg.editor.SvgVirtualFile;
 import com.plugin.svg.render.SvgRenderer;
 import com.intellij.testFramework.LightVirtualFile;
@@ -49,18 +48,18 @@ public class SvgDataUriUtilTest {
     @Test
     public void testPreviewVirtualFileCanUseOriginalFileNameForEditorTab() {
         SvgVirtualFile previewFile = new SvgVirtualFile(
-                "svg-preview-test.svg-123", SIMPLE_SVG, SIMPLE_SVG, null, "test.svg");
+                "svg-preview-test.svg-123", SIMPLE_SVG, SIMPLE_SVG, null, "svg-files/test.svg");
 
-        assertEquals("test.svg", previewFile.getName());
-        assertEquals("test.svg", previewFile.getEditorTabName());
+        assertEquals("svg-files/test.svg", previewFile.getName());
+        assertEquals("svg-files/test.svg", previewFile.getEditorTabName());
     }
 
     @Test
     public void testPreviewVirtualFileKeepsStandaloneSourceFileForSaving() {
-        LightVirtualFile sourceFile = new LightVirtualFile("test.svg", SIMPLE_SVG);
+        LightVirtualFile sourceFile = new LightVirtualFile("svg-files/test.svg", SIMPLE_SVG);
         SvgVirtualFile previewFile = new SvgVirtualFile(
                 "svg-preview-test.svg-123", SIMPLE_SVG, SIMPLE_SVG, null,
-                "test.svg", sourceFile, SIMPLE_SVG);
+                "svg-files/test.svg", sourceFile, SIMPLE_SVG);
 
         assertSame(sourceFile, previewFile.getSourceFile());
         assertEquals(SIMPLE_SVG, previewFile.getOriginalSourceContent());

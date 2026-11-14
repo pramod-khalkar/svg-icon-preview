@@ -1,5 +1,8 @@
 package com.plugin.svg.render;
 
+import org.apache.batik.parser.DefaultPathHandler;
+import org.apache.batik.parser.ParseException;
+import org.apache.batik.parser.PathParser;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
@@ -88,7 +91,29 @@ public final class SvgDiagnostics {
         WARNING
     }
 
-    public record Issue(Severity severity, String message, int line, int column) {
+    public record Issue(Severity severity, String message, int line, int column,
+                        String attribute, String element, String suggestion) {
+        public Issue(Severity severity, String message, int line, int column) {
+            this(severity, message, line, column, null, null, null);
+        }
+
+        public String displayText() {
+            if (attribute == null) {
+                String location = line > 0
+                        ? " (line " + line + (column > 0 ? ", column " + column : "") + ")"
+                        : "";
+                return severity.name() + location + ": " + message;
+            }
+
+            String location = line > 0
+                    ? element + " element (line " + line + (column > 0 ? ", column " + column : "") + ")"
+                    : element + " element (line/column unavailable)";
+            return severity.name()
+                    + "\nAttribute: " + attribute
+                    + "\nReason: " + message
+                    + "\nLocation: " + location
+                    + "\nSuggestion: " + suggestion;
+        }
     }
 
     private static final class AnalyzerHandler extends DefaultHandler {
@@ -135,6 +160,9 @@ public final class SvgDiagnostics {
             for (int i = 0; i < attributes.getLength(); i++) {
                 String attributeName = localName(attributes.getLocalName(i), attributes.getQName(i));
                 String value = attributes.getValue(i);
+                if (element.equals("path") && attributeName.equals("d")) {
+                    inspectPathData(value);
+                }
                 if (attributeName.equals("style")) {
                     inspectCss(value);
                 }
@@ -214,6 +242,34 @@ public final class SvgDiagnostics {
 
         private void inspectCssUrls(String value) {
             inspectReferences(CSS_URL_PATTERN.matcher(value));
+        }
+
+        private void inspectPathData(String pathData) {
+            PathParser parser = new PathParser();
+            parser.setPathHandler(DefaultPathHandler.INSTANCE);
+            try {
+                parser.parse(pathData);
+            } catch (ParseException exception) {
+                char command = commandAtError(pathData, exception.getColumnNumber());
+                String suggestion = command == 'A' || command == 'a'
+                        ? "Check the A (arc) command. Each arc segment requires seven parameters: rx, ry, x-axis rotation, large-arc flag, sweep flag, x, and y."
+                        : "Check the path command and its required parameters; each command must have the correct number of valid values.";
+                issues.add(new Issue(Severity.ERROR, "Invalid SVG path command parameters.",
+                        currentLine(), currentColumn(), "d", "Path", suggestion));
+            }
+        }
+
+        private static char commandAtError(String pathData, int errorColumn) {
+            int index = errorColumn > 0
+                    ? Math.min(errorColumn - 1, pathData.length() - 1)
+                    : pathData.length() - 1;
+            for (int i = index; i >= 0; i--) {
+                char candidate = pathData.charAt(i);
+                if ("MmZzLlHhVvCcSsQqTtAa".indexOf(candidate) >= 0) {
+                    return candidate;
+                }
+            }
+            return '\0';
         }
 
         private void inspectReferences(Matcher references) {

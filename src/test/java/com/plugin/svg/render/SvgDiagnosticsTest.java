@@ -2,10 +2,13 @@ package com.plugin.svg.render;
 
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -35,6 +38,39 @@ public class SvgDiagnosticsTest {
         String source = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><rect/></svg>";
 
         assertTrue(SvgDiagnostics.analyze(source).isEmpty());
+    }
+
+    @Test
+    public void reportsMalformedPathDataWithArcParameterSuggestionAndLocation() {
+        String source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\">\n"
+                + "  <path d=\"M 0 0 A 10 10 0 0 1 20\"/>\n"
+                + "</svg>";
+
+        List<SvgDiagnostics.Issue> issues = SvgDiagnostics.analyze(source);
+
+        assertEquals(1, issues.size());
+        SvgDiagnostics.Issue issue = issues.get(0);
+        assertEquals(SvgDiagnostics.Severity.ERROR, issue.severity());
+        assertEquals("d", issue.attribute());
+        assertEquals(2, issue.line());
+        assertTrue(issue.column() > 0);
+        assertTrue(issue.displayText().contains("Attribute: d"));
+        assertTrue(issue.displayText().contains("Reason: Invalid SVG path command parameters."));
+        assertTrue(issue.displayText().contains("Location: Path element (line 2"));
+        assertTrue(issue.displayText().contains("A (arc) command"));
+        assertTrue(issue.displayText().contains("requires seven parameters"));
+    }
+
+    @Test
+    public void malformedNonArcPathGetsGeneralParameterSuggestion() {
+        String source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\">"
+                + "<path d=\"M 0 0 L\"/></svg>";
+
+        List<SvgDiagnostics.Issue> issues = SvgDiagnostics.analyze(source);
+
+        assertEquals(1, issues.size());
+        assertTrue(issues.get(0).suggestion().contains("correct number"));
+        assertFalse(issues.get(0).suggestion().contains("A (arc)"));
     }
 
     @Test
@@ -79,5 +115,29 @@ public class SvgDiagnosticsTest {
 
         assertNull(result.image());
         assertFalse(result.errorMessage() == null || result.errorMessage().isBlank());
+    }
+
+    @Test
+    public void rendererReportsBatikPathAttributeFailureInsteadOfNull() {
+        String source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\">"
+                + "<path d=\"M 0 0 L\"/></svg>";
+
+        SvgRenderer.RenderResult result = SvgRenderer.renderWithResult(source, 16, 16);
+
+        assertNull(result.image());
+        assertTrue(result.errorMessage(), result.errorMessage().contains("attribute \"d\""));
+    }
+
+    @Test
+    public void rendersFit360BrowserThumbnailFixture() throws IOException {
+        String source;
+        try (var input = getClass().getResourceAsStream("/svg-files/fit360-logo.svg")) {
+            assertNotNull(input);
+            source = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+        }
+
+        SvgRenderer.RenderResult result = SvgRenderer.renderWithResult(source, 64, 64);
+
+        assertNotNull(result.errorMessage(), result.image());
     }
 }

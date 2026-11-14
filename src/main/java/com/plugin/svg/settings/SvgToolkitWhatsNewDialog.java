@@ -39,8 +39,10 @@ final class SvgToolkitWhatsNewDialog extends DialogWrapper {
                 "<p>Highlights in SVG Toolkit " + version + ":</p>" +
                 "<ul>" +
                 "<li>Review malformed SVG/XML and rendering errors in the preview, with source locations when available.</li>" +
+                "<li>Get structured SVG path-data errors with command-specific repair suggestions.</li>" +
                 "<li>See non-blocking warnings when intrinsic sizing is incomplete or an SVG references external resources.</li>" +
                 "<li>Expand diagnostic details and double-click a located issue to jump to its source.</li>" +
+                "<li>Open an SVG in the editor even when gutter or embedded-result rendering fails, then inspect the renderer diagnostics.</li>" +
                 "<li>Diagnostics do not fetch external resources.</li>" +
                 "</ul>" +
                 "<p>Open an SVG preview to see its diagnostics. " +

@@ -249,6 +249,7 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
 
     private void refreshSvgFiles() {
         long generation = scanGeneration.incrementAndGet();
+        thumbnailCache.clear();
         statusLabel.setText("Searching project for SVG files…");
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Searching for SVG files", false) {
             @Override
@@ -594,11 +595,7 @@ final class SvgProjectBrowserPanel extends JPanel implements Disposable {
                     showEmbeddedPreviewError("Unable to decode the SVG data URI.", NotificationType.WARNING);
                     return;
                 }
-                var preview = SvgRenderer.render(svgText, 400, 400);
-                if (preview == null) {
-                    showEmbeddedPreviewError("Unable to render the selected SVG data URI.", NotificationType.ERROR);
-                    return;
-                }
+                var preview = SvgRenderer.renderWithResult(svgText, 400, 400).image();
                 if (project.isDisposed()) {
                     return;
                 }

@@ -17,7 +17,7 @@
             <li><b>Source Editor and Live Preview</b> - Edit formatted SVG source and see a debounced preview without automatically modifying the original</li>
             <li><b>Save and Export</b> - Save changes to an opened standalone SVG, save a new SVG or PNG, or copy the preview as PNG or the SVG as a Base64 data URI</li>
             <li><b>Batch PNG Export</b> - Select multiple standalone SVGs or embedded data URI matches and export PNGs directly into a chosen directory at multiple maximum-edge sizes, preserving aspect ratio and providing per-file or batch-wide conflict handling</li>
-            <li><b>SVG Diagnostics</b> - Show parse and rendering errors with source locations when available, and non-blocking warnings for missing intrinsic sizing or external resource references without fetching external content</li>
+            <li><b>SVG Diagnostics</b> - Show structured parse and rendering errors with path-command suggestions, open the editor for gutter and embedded previews that fail to render, and warn about missing intrinsic sizing or external resource references without fetching external content</li>
             <li><b>Preview Layout and Controls</b> - Use split, source-only, or preview-only layouts; zoom, fit, view at 1:1, and toggle checkerboard or grid overlays</li>
             <li><b>Background Rendering and Caching</b> - Render off the UI thread and cache gutter images to keep editing responsive</li>
             <li><b>Configurable Inline Size</b> - Set the size threshold for inline SVG previews (default 200 KB)</li>

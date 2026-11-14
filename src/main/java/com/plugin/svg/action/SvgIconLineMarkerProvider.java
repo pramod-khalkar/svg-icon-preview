@@ -235,23 +235,20 @@ public class SvgIconLineMarkerProvider implements LineMarkerProvider {
 
         GutterIconNavigationHandler<PsiElement> clickHandler = (mouseEvent, psi) -> ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
-                BufferedImage preview = renderImageFromSvg(svgText, PREVIEW_ICON_SIZE, PREVIEW_ICON_SIZE);
-                if (preview == null) {
-                    SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
-                            SwingUtilities.getWindowAncestor(com.intellij.openapi.wm.WindowManager.getInstance().getFrame(project)),
-                            "Failed to render SVG preview.",
-                            "Preview Error",
-                            JOptionPane.ERROR_MESSAGE));
-                    return;
-                }
-
-                if (!dynamicIcon.hasImage()) {
+                SvgRenderer.RenderResult renderResult =
+                        SvgRenderer.renderWithResult(svgText, PREVIEW_ICON_SIZE, PREVIEW_ICON_SIZE);
+                BufferedImage preview = renderResult.image();
+                if (preview != null && !dynamicIcon.hasImage()) {
                     BufferedImage gutterImg = imageCache.get(shortId);
                     if (gutterImg == null) {
                         gutterImg = renderImageFromSvg(svgText, GUTTER_ICON_SIZE, GUTTER_ICON_SIZE);
-                        imageCache.put(shortId, gutterImg);
+                        if (gutterImg != null) {
+                            imageCache.put(shortId, gutterImg);
+                        }
                     }
-                    dynamicIcon.setImage(gutterImg);
+                    if (gutterImg != null) {
+                        dynamicIcon.setImage(gutterImg);
+                    }
                 }
 
                 SwingUtilities.invokeLater(() -> {

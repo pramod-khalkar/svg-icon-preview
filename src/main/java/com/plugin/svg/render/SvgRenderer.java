@@ -1,5 +1,6 @@
 package com.plugin.svg.render;
 import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.jetbrains.annotations.Nullable;
@@ -63,13 +64,36 @@ public class SvgRenderer {
 					? new RenderResult(null, "The renderer did not produce an image.", null)
 					: new RenderResult(image, null, null);
 		} catch (Exception e) {
-			String message = e.getMessage();
+			String message = detailedErrorMessage(e);
 			return new RenderResult(null,
-					message == null || message.isBlank() ? "The SVG renderer could not render this document." : message,
+					message,
 					e);
 		} finally {
 			Thread.currentThread().setContextClassLoader(original);
 		}
+	}
+
+	private static String detailedErrorMessage(Exception exception) {
+		Throwable detail = exception;
+		while (true) {
+			if (detail instanceof TranscoderException transcoderException
+					&& transcoderException.getException() != null
+					&& transcoderException.getException() != detail) {
+				detail = transcoderException.getException();
+			} else if ((detail.getMessage() == null || detail.getMessage().isBlank())
+					&& detail.getCause() != null && detail.getCause() != detail) {
+				detail = detail.getCause();
+			} else {
+				break;
+			}
+		}
+
+		String message = detail.getMessage();
+		if (message == null || message.isBlank()) {
+			return "The SVG renderer could not render this document.";
+		}
+		String singleLine = message.replaceAll("\\s+", " ").trim();
+		return singleLine.length() > 240 ? singleLine.substring(0, 237) + "..." : singleLine;
 	}
 
 	public record RenderResult(@Nullable BufferedImage image, @Nullable String errorMessage,
