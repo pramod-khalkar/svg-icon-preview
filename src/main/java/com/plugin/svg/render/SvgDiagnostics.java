@@ -28,6 +28,10 @@ public final class SvgDiagnostics {
             Pattern.compile("(?i)url\\(\\s*(['\"]?)(.*?)\\1\\s*\\)");
     private static final Pattern CSS_IMPORT_PATTERN =
             Pattern.compile("(?i)@import\\s+(?:url\\()?\\s*(['\"]?)([^'\";\\s)]+)\\1");
+    private static final Pattern PATH_NUMBER_PATTERN =
+            Pattern.compile("[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?");
+    private static final Pattern RENDER_ATTRIBUTE_ERROR_PATTERN = Pattern.compile(
+            "(?i)the attribute\\s+[\"']?([\\w:-]+)[\"']?\\s+of the element\\s+<([\\w:-]+)>\\s+is\\s+(.+)");
     private static final Set<String> RESOURCE_ELEMENTS = Set.of(
             "feimage", "image", "lineargradient", "mpath", "pattern", "radialgradient", "script", "textpath", "use");
 
@@ -61,6 +65,27 @@ public final class SvgDiagnostics {
             handler.addError("SVG analysis failed: " + conciseMessage(exception), -1, -1);
         }
         return List.copyOf(handler.issues);
+    }
+
+    public static Issue fromRenderError(String renderError) {
+        String message = renderError == null || renderError.isBlank()
+                ? "The SVG renderer could not render this document."
+                : renderError.trim();
+        Matcher attributeError = RENDER_ATTRIBUTE_ERROR_PATTERN.matcher(message);
+        if (attributeError.matches()) {
+            String attribute = attributeError.group(1);
+            String element = attributeError.group(2);
+            String reason = attributeError.group(3).replaceAll("[.\\s]+$", "");
+            String suggestion = reason.toLowerCase(Locale.ROOT).contains("required")
+                    ? "Add this required attribute with a valid SVG value for the <" + element + "> element."
+                    : "Check the syntax and allowed values for this attribute on <" + element
+                    + ">; edit the SVG source and render again to verify.";
+            return new Issue(Severity.ERROR, reason, -1, -1, attribute, element, suggestion);
+        }
+
+        return new Issue(Severity.ERROR, message, -1, -1, null, null,
+                "Inspect the SVG source near the reported renderer failure. Check for unsupported "
+                        + "elements, attributes, or values, then edit the source and render again.");
     }
 
     private static String conciseMessage(Exception exception) {
@@ -102,7 +127,8 @@ public final class SvgDiagnostics {
                 String location = line > 0
                         ? " (line " + line + (column > 0 ? ", column " + column : "") + ")"
                         : "";
-                return severity.name() + location + ": " + message;
+                String text = severity.name() + location + ": " + message;
+                return suggestion == null ? text : text + "\nSuggestion: " + suggestion;
             }
 
             String location = line > 0
@@ -250,13 +276,65 @@ public final class SvgDiagnostics {
             try {
                 parser.parse(pathData);
             } catch (ParseException exception) {
-                char command = commandAtError(pathData, exception.getColumnNumber());
+                PathErrorContext context = pathErrorContext(pathData, exception.getColumnNumber());
+                char command = context == null
+                        ? commandAtError(pathData, exception.getColumnNumber())
+                        : context.command();
                 String suggestion = command == 'A' || command == 'a'
-                        ? "Check the A (arc) command. Each arc segment requires seven parameters: rx, ry, x-axis rotation, large-arc flag, sweep flag, x, and y."
+                        ? arcSuggestion(context)
                         : "Check the path command and its required parameters; each command must have the correct number of valid values.";
                 issues.add(new Issue(Severity.ERROR, "Invalid SVG path command parameters.",
                         currentLine(), currentColumn(), "d", "Path", suggestion));
             }
+        }
+
+        private static String arcSuggestion(PathErrorContext context) {
+            String suggestion = "Check the A (arc) command. It requires seven parameters in this order: "
+                    + "rx, ry, x-axis rotation, large-arc-flag (0 or 1), sweep-flag (0 or 1), x, and y.";
+            if (context != null && context.interruptedBy() != null) {
+                suggestion += " The next command '" + context.interruptedBy()
+                        + "' appears before the arc is complete. Add the missing values, "
+                        + "or replace 'A' if it was not intended to start an arc.";
+            } else {
+                suggestion += " Complete the arc parameters or replace 'A' if it was not intended to start an arc.";
+            }
+            return suggestion;
+        }
+
+        private static PathErrorContext pathErrorContext(String pathData, int errorColumn) {
+            int limit = errorColumn > 0
+                    ? Math.min(errorColumn, pathData.length())
+                    : pathData.length();
+            char activeCommand = '\0';
+            int parameterCount = 0;
+            Matcher number = PATH_NUMBER_PATTERN.matcher(pathData);
+            for (int index = 0; index < limit; index++) {
+                char character = pathData.charAt(index);
+                if (isPathCommand(character)) {
+                    if ((activeCommand == 'A' || activeCommand == 'a') && parameterCount % 7 != 0) {
+                        return new PathErrorContext(activeCommand, character);
+                    }
+                    activeCommand = character;
+                    parameterCount = 0;
+                    continue;
+                }
+                if (activeCommand == '\0') {
+                    continue;
+                }
+                number.region(index, limit);
+                if (number.lookingAt()) {
+                    parameterCount++;
+                    index = number.end() - 1;
+                }
+            }
+            if ((activeCommand == 'A' || activeCommand == 'a') && parameterCount % 7 != 0) {
+                return new PathErrorContext(activeCommand, null);
+            }
+            return null;
+        }
+
+        private static boolean isPathCommand(char character) {
+            return "MmZzLlHhVvCcSsQqTtAa".indexOf(character) >= 0;
         }
 
         private static char commandAtError(String pathData, int errorColumn) {
@@ -270,6 +348,9 @@ public final class SvgDiagnostics {
                 }
             }
             return '\0';
+        }
+
+        private record PathErrorContext(char command, Character interruptedBy) {
         }
 
         private void inspectReferences(Matcher references) {

@@ -238,11 +238,7 @@ public class SvgFileEditor implements FileEditor, Disposable {
                     if (image == null && issues.stream().noneMatch(
                             issue -> issue.severity() == SvgDiagnostics.Severity.ERROR)) {
                         String detail = conciseRenderError(result.errorMessage());
-                        issues.add(new SvgDiagnostics.Issue(
-                                SvgDiagnostics.Severity.ERROR,
-                                detail == null ? "The SVG renderer could not produce a preview."
-                                        : "The SVG renderer could not produce a preview: " + detail,
-                                -1, -1));
+                        issues.add(SvgDiagnostics.fromRenderError(detail));
                     }
                 }
             }

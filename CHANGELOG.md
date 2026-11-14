@@ -9,7 +9,8 @@ All notable changes to SVG Toolkit will be documented in this file.
 - Added non-blocking warnings for missing intrinsic sizing and external resource references; diagnostics never fetch external resources.
 - Added a collapsible diagnostics panel with double-click navigation to the reported source location.
 - Open the SVG editor even when gutter or embedded-result rendering fails, showing the renderer explanation in diagnostics.
-- Validate SVG path data and provide structured attribute, reason, location, and command-specific suggestion details.
+- Validate SVG path data and provide structured attribute, reason, location, and command-specific suggestions, including interrupted arc parameters.
+- Provide best-effort attribute and element guidance for renderer errors, with a generic editing suggestion when the cause cannot be classified.
 
 #### Fixed
 - Refreshing the project SVG browser clears cached thumbnail results so corrected SVGs are rendered again.

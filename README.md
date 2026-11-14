@@ -81,8 +81,10 @@ an editor and project browser for standalone SVG files and embedded data URIs.
   preview-only layouts.
 - Review preview diagnostics for parse/render errors and non-blocking warnings
   about missing intrinsic sizing or external resource references. Diagnostics
-  validate path data, provide command-specific suggestions, and do not fetch
-  external resources; double-click a located issue to jump to source.
+  validate path data, explain incomplete arc commands, and provide best-effort
+  attribute/element guidance for renderer errors when available. They do not
+  auto-edit ambiguous SVGs or fetch external resources; double-click a located
+  issue to jump to source.
 - If a gutter preview cannot render, it still opens in the editor so you can
   inspect the source and renderer diagnostics.
 - Embedded SVG search results also open in the editor when rendering fails, so
