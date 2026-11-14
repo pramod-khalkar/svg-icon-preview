@@ -61,6 +61,12 @@ an editor and project browser for standalone SVG files and embedded data URIs.
       <sub>Choose multiple PNG output sizes</sub>
     </td>
   </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <img src="docs/screenshots/editor-shows-dignostic-results.png" alt="SVG editor showing a path diagnostic with an actionable arc-command suggestion" width="840"><br>
+      <sub>Preview diagnostics explain SVG errors and suggest what to check</sub>
+    </td>
+  </tr>
 </table>
 
 ## Features

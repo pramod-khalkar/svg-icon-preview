@@ -2,7 +2,7 @@
 
 All notable changes to SVG Toolkit will be documented in this file.
 
-### [1.4.0] - 2026-11-12
+### [1.4.0] - 2026-11-14
 
 #### Added
 - Added preview diagnostics for malformed SVG/XML and rendering failures, including source locations when available.
